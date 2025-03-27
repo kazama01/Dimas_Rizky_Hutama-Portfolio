@@ -3,22 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My GitHub Portfolio</title>
+    <title>Dimas Rizky Hutama - Tech Artist Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <meta name="description" content="Developer portfolio showcasing my projects and skills">
+    <meta name="description" content="Tech Art and Developer portfolio showcasing projects and skills">
     <style>
         /* Dynamic gradient background */
         body {
-            background: linear-gradient(120deg, #ff7eb3, #ff758c, #ff6a65);
-            background-size: 300% 300%;
-            animation: gradientAnimation 10s ease infinite;
-        }
-
-        @keyframes gradientAnimation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            background: #121212;
         }
 
         /* Smooth scrolling */
@@ -38,13 +33,165 @@
 
         /* Particle effect container */
         #particle-container {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             pointer-events: none;
             z-index: -1;
+            overflow: hidden;
+        }
+        
+        /* Skill bar styles */
+        .skill-bar {
+            height: 8px;
+            background: rgba(100, 255, 218, 0.1);
+            border-radius: 4px;
+            margin-bottom: 5px;
+            overflow: hidden;
+        }
+        
+        .skill-bar-fill {
+            height: 100%;
+            background: #64ffda;
+            border-radius: 4px;
+            transition: width 1s ease;
+        }
+        
+        /* Project gallery */
+        .project-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .gallery-item {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.4s;
+            aspect-ratio: 16/9;
+            cursor: pointer;
+        }
+        
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s;
+        }
+        
+        .gallery-item:hover img {
+            transform: scale(1.05);
+        }
+        
+        .gallery-item-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(18, 18, 18, 0.8);
+            padding: 15px;
+            transform: translateY(100%);
+            transition: transform 0.3s;
+        }
+        
+        .gallery-item:hover .gallery-item-overlay {
+            transform: translateY(0);
+        }
+        
+        .gallery-item-title {
+            color: #fff;
+            margin: 0 0 5px;
+            font-size: 1.1rem;
+        }
+        
+        .gallery-item-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .gallery-item-tag {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            background: rgba(100, 255, 218, 0.2);
+            color: #64ffda;
+            border-radius: 20px;
+        }
+        
+        /* Experience timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 10px;
+            bottom: 10px;
+            width: 2px;
+            background: rgba(100, 255, 218, 0.3);
+        }
+        
+        .timeline-item {
+            position: relative;
+            margin-bottom: 40px;
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -34px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #64ffda;
+            box-shadow: 0 0 0 4px rgba(100, 255, 218, 0.2);
+        }
+        
+        .timeline-item-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .timeline-item-title {
+            font-weight: 600;
+            color: #f5f5f5;
+            margin: 0;
+        }
+        
+        .timeline-item-company {
+            font-weight: 500;
+            color: #64ffda;
+            margin: 0;
+        }
+        
+        .timeline-item-date {
+            color: #b3b3b3;
+            font-size: 0.9rem;
+        }
+        
+        .timeline-item-description ul {
+            padding-left: 20px;
+            margin: 10px 0;
+            color: #b3b3b3;
+        }
+        
+        .timeline-item-description li {
+            margin-bottom: 8px;
         }
     </style>
 </head>
@@ -54,13 +201,14 @@
 
     <header>
         <div class="container">
-            <h1 class="logo">My Portfolio</h1>
+            <h1 class="logo">Dimas Rizky Hutama</h1>
             <nav>
                 <ul>
                     <li><a href="#home">Home</a></li>
                     <li><a href="#about">About</a></li>
                     <li><a href="#projects">Projects</a></li>
                     <li><a href="#skills">Skills</a></li>
+                    <li><a href="#experience">Experience</a></li>
                     <li><a href="#contact">Contact</a></li>
                 </ul>
             </nav>
@@ -70,17 +218,16 @@
     <section id="home" class="hero">
         <div class="container">
             <div class="hero-content">
-                <h2>Hello, I'm <span class="highlight">Your Name</span></h2>
-                <h3>Software Developer</h3>
-                <p>I build things for the web and beyond, blending creativity and technology.</p>
+                <h2>Hello, I'm <span class="highlight">Dimas Rizky Hutama</span></h2>
+                <h3>Technical Artist & Unity Developer</h3>
+                <p>I blend artistry and technology to create immersive game experiences with shaders, VFX, and optimized game mechanics.</p>
                 <div class="cta-buttons">
                     <a href="#projects" class="btn primary">View My Work</a>
                     <a href="#contact" class="btn secondary">Contact Me</a>
                 </div>
                 <div class="social-links">
                     <a href="https://github.com/yourusername" target="_blank"><i class="fab fa-github"></i></a>
-                    <a href="https://linkedin.com/in/yourusername" target="_blank"><i class="fab fa-linkedin"></i></a>
-                    <a href="https://twitter.com/yourusername" target="_blank"><i class="fab fa-twitter"></i></a>
+                    <a href="https://linkedin.com/in/dimas-rizky-hutama" target="_blank"><i class="fab fa-linkedin"></i></a>
                 </div>
             </div>
         </div>
@@ -91,12 +238,12 @@
             <h2 class="section-title">About Me</h2>
             <div class="about-content">
                 <div class="about-text">
-                    <p>I am a passionate software developer with expertise in building web applications and solving complex problems. With a strong foundation in both frontend and backend technologies, I create efficient, scalable, and user-friendly solutions.</p>
-                    <p>My journey in coding began when I was in college, and since then, I've worked on various projects that have helped me grow as a developer. I'm constantly learning new technologies and methodologies to stay current in this ever-evolving field.</p>
+                    <p>I am a passionate Technical Artist with expertise in creating visual effects, shaders, and optimized game systems. With strong foundations in both art and programming, I bridge the gap between creative vision and technical implementation.</p>
+                    <p>Currently working as a VFX Artist at Gaco Game and Unity Full Stack Developer at Starpixel, I specialize in shader creation, VFX/particle systems, and game optimization. I'm constantly exploring new techniques to push the boundaries of what's possible in real-time graphics.</p>
                     <a href="#" class="btn primary" id="resume-btn">Download Resume</a>
                 </div>
                 <div class="about-image">
-                    <img src="images/profile.jpg" alt="Your Profile Picture" id="profile-pic">
+                    <img src="images/profile.jpg" alt="Dimas Rizky Hutama" id="profile-pic">
                 </div>
             </div>
         </div>
@@ -104,12 +251,122 @@
 
     <section id="projects" class="projects">
         <div class="container">
-            <h2 class="section-title">My Projects</h2>
-            <p class="section-description">Here are some of my recent projects. More available on my <a href="https://github.com/yourusername" target="_blank">GitHub</a>.</p>
+            <h2 class="section-title">Featured Projects</h2>
+            <p class="section-description">Here are some of my recent visual effects and shader projects. Click on any project to view the demo video.</p>
             
-            <div class="projects-grid" id="github-projects">
-                <!-- Projects will be loaded here dynamically -->
-                <div class="project-loader">Loading projects...</div>
+            <div class="project-gallery">
+                <div class="gallery-item">
+                    <img src="images/projects/simple-animation.jpg" alt="Simple Animation">
+                    <div class="gallery-item-overlay">
+                        <h3 class="gallery-item-title">Simple Animation #2</h3>
+                        <div class="gallery-item-tags">
+                            <span class="gallery-item-tag">Simple</span>
+                            <span class="gallery-item-tag">Cinemachine</span>
+                            <span class="gallery-item-tag">Timeline</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="gallery-item">
+                    <img src="images/projects/melee-combat.jpg" alt="Melee Combat Prototype">
+                    <div class="gallery-item-overlay">
+                        <h3 class="gallery-item-title">Melee Combat Prototype</h3>
+                        <div class="gallery-item-tags">
+                            <span class="gallery-item-tag">Combat</span>
+                            <span class="gallery-item-tag">Prototype</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="gallery-item">
+                    <img src="images/projects/sonar-scan.jpg" alt="Sonar Scan Effect">
+                    <div class="gallery-item-overlay">
+                        <h3 class="gallery-item-title">Sonar Scan Effect</h3>
+                        <div class="gallery-item-tags">
+                            <span class="gallery-item-tag">VFX</span>
+                            <span class="gallery-item-tag">Shader</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="gallery-item">
+                    <img src="images/projects/dissolve-effect.jpg" alt="Dissolve Effect">
+                    <div class="gallery-item-overlay">
+                        <h3 class="gallery-item-title">Dissolve Effect for Level Transition</h3>
+                        <div class="gallery-item-tags">
+                            <span class="gallery-item-tag">Shader</span>
+                            <span class="gallery-item-tag">VFX</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="gallery-item">
+                    <img src="images/projects/portal-effect.jpg" alt="Portal Effect">
+                    <div class="gallery-item-overlay">
+                        <h3 class="gallery-item-title">Portal Effect</h3>
+                        <div class="gallery-item-tags">
+                            <span class="gallery-item-tag">VFX</span>
+                            <span class="gallery-item-tag">Shader</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="gallery-item">
+                    <img src="images/projects/displacement-effect.jpg" alt="Displacement Effect">
+                    <div class="gallery-item-overlay">
+                        <h3 class="gallery-item-title">Displacement Effect</h3>
+                        <div class="gallery-item-tags">
+                            <span class="gallery-item-tag">Shader</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <h3 class="section-subtitle">VFX/Particle Systems</h3>
+            <div class="project-gallery">
+                <div class="gallery-item">
+                    <img src="images/projects/snow-particle.jpg" alt="Snow Particle System">
+                    <div class="gallery-item-overlay">
+                        <h3 class="gallery-item-title">Snow Particle System</h3>
+                        <div class="gallery-item-tags">
+                            <span class="gallery-item-tag">Particle System</span>
+                            <span class="gallery-item-tag">VFX</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="gallery-item">
+                    <img src="images/projects/meteor-shower.jpg" alt="Meteor Shower">
+                    <div class="gallery-item-overlay">
+                        <h3 class="gallery-item-title">Meteor Shower</h3>
+                        <div class="gallery-item-tags">
+                            <span class="gallery-item-tag">Particle System</span>
+                            <span class="gallery-item-tag">VFX</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="gallery-item">
+                    <img src="images/projects/fire-particle.jpg" alt="Fire Particle">
+                    <div class="gallery-item-overlay">
+                        <h3 class="gallery-item-title">Fire Particle</h3>
+                        <div class="gallery-item-tags">
+                            <span class="gallery-item-tag">Particle System</span>
+                            <span class="gallery-item-tag">VFX</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="gallery-item">
+                    <img src="images/projects/slash-effect.jpg" alt="Slash Effect">
+                    <div class="gallery-item-overlay">
+                        <h3 class="gallery-item-title">Slash Effect</h3>
+                        <div class="gallery-item-tags">
+                            <span class="gallery-item-tag">VFX</span>
+                            <span class="gallery-item-tag">Game</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -117,36 +374,214 @@
     <section id="skills" class="skills">
         <div class="container">
             <h2 class="section-title">Skills & Technologies</h2>
+            
             <div class="skills-container">
                 <div class="skill-category">
-                    <h3>Languages</h3>
+                    <h3>Tools</h3>
                     <ul class="skill-list">
-                        <li>JavaScript</li>
-                        <li>HTML5</li>
-                        <li>CSS3</li>
-                        <li>Python</li>
-                        <li>Java</li>
+                        <li>
+                            Unity
+                            <div class="skill-bar">
+                                <div class="skill-bar-fill" style="width: 90%"></div>
+                            </div>
+                            <small>Advanced</small>
+                        </li>
+                        <li>
+                            Amplify Shader Editor
+                            <div class="skill-bar">
+                                <div class="skill-bar-fill" style="width: 90%"></div>
+                            </div>
+                            <small>Advanced</small>
+                        </li>
+                        <li>
+                            Unity Shader Graph
+                            <div class="skill-bar">
+                                <div class="skill-bar-fill" style="width: 90%"></div>
+                            </div>
+                            <small>Advanced</small>
+                        </li>
+                        <li>
+                            Blender
+                            <div class="skill-bar">
+                                <div class="skill-bar-fill" style="width: 70%"></div>
+                            </div>
+                            <small>Intermediate</small>
+                        </li>
+                        <li>
+                            Photoshop
+                            <div class="skill-bar">
+                                <div class="skill-bar-fill" style="width: 70%"></div>
+                            </div>
+                            <small>Intermediate</small>
+                        </li>
+                        <li>
+                            Houdini
+                            <div class="skill-bar">
+                                <div class="skill-bar-fill" style="width: 50%"></div>
+                            </div>
+                            <small>Basic</small>
+                        </li>
                     </ul>
                 </div>
+                
                 <div class="skill-category">
-                    <h3>Frameworks & Libraries</h3>
+                    <h3>Programming Languages</h3>
                     <ul class="skill-list">
-                        <li>React</li>
-                        <li>Node.js</li>
-                        <li>Express</li>
-                        <li>Django</li>
-                        <li>Bootstrap</li>
+                        <li>
+                            C#
+                            <div class="skill-bar">
+                                <div class="skill-bar-fill" style="width: 70%"></div>
+                            </div>
+                            <small>Intermediate</small>
+                        </li>
+                        <li>
+                            HLSL
+                            <div class="skill-bar">
+                                <div class="skill-bar-fill" style="width: 70%"></div>
+                            </div>
+                            <small>Intermediate</small>
+                        </li>
+                        <li>
+                            Java
+                            <div class="skill-bar">
+                                <div class="skill-bar-fill" style="width: 50%"></div>
+                            </div>
+                            <small>Basic</small>
+                        </li>
+                        <li>
+                            GLSL
+                            <div class="skill-bar">
+                                <div class="skill-bar-fill" style="width: 50%"></div>
+                            </div>
+                            <small>Basic</small>
+                        </li>
                     </ul>
                 </div>
+                
                 <div class="skill-category">
-                    <h3>Tools & Platforms</h3>
+                    <h3>Technical Art Skills</h3>
                     <ul class="skill-list">
-                        <li>Git</li>
-                        <li>GitHub</li>
-                        <li>VS Code</li>
-                        <li>Docker</li>
-                        <li>AWS</li>
+                        <li>VFX/Particle System Creation</li>
+                        <li>Shader Creation</li>
+                        <li>Visual Designing</li>
+                        <li>Optimization</li>
+                        <li>Illustrations</li>
+                        <li>Prototyping</li>
                     </ul>
+                </div>
+                
+                <div class="skill-category">
+                    <h3>Certifications</h3>
+                    <ul class="skill-list">
+                        <li>A Complete Guide to Unity's Universal Render Pipeline, URP</li>
+                        <li>Your Ultimate Guide to Shader Graph for Beginners</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <section id="experience" class="experience">
+        <div class="container">
+            <h2 class="section-title">Work Experience</h2>
+            
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-item-header">
+                        <h3 class="timeline-item-title">Unity VFX Artist</h3>
+                        <span class="timeline-item-date">Aug 2024 - Present</span>
+                    </div>
+                    <div class="timeline-item-company">Gaco Game</div>
+                    <div class="timeline-item-description">
+                        <ul>
+                            <li>Create shader, VFX</li>
+                            <li>Creating custom mesh for the effect</li>
+                            <li>Creating sprite sheet for vfx</li>
+                            <li>Optimize vfx so it can run in any device</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-item-header">
+                        <h3 class="timeline-item-title">Unity Full Stack Developer</h3>
+                        <span class="timeline-item-date">Aug 2024 - Present</span>
+                    </div>
+                    <div class="timeline-item-company">Starpixel</div>
+                    <div class="timeline-item-description">
+                        <ul>
+                            <li>Create shader, VFX, and game asset</li>
+                            <li>Creating game design and game balancing</li>
+                            <li>Optimize project</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-item-header">
+                        <h3 class="timeline-item-title">Technical Artist</h3>
+                        <span class="timeline-item-date">Jun 2024 - Aug 2024</span>
+                    </div>
+                    <div class="timeline-item-company">Bythen</div>
+                    <div class="timeline-item-description">
+                        <ul>
+                            <li>Create shader or effect according to our project demand</li>
+                            <li>Creating VFX and particle system</li>
+                            <li>Creating custom post processing</li>
+                            <li>Making sure that our 3D asset is game ready</li>
+                            <li>Solving Unity engine technical problems</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-item-header">
+                        <h3 class="timeline-item-title">Technical Artist</h3>
+                        <span class="timeline-item-date">Mar 2023 - Jun 2024</span>
+                    </div>
+                    <div class="timeline-item-company">Shinta VR</div>
+                    <div class="timeline-item-description">
+                        <ul>
+                            <li>Developing multi platform (VR, Mobile, PC) games/simulations</li>
+                            <li>Create shader or effect according to project demand</li>
+                            <li>Creating VFX and particle system</li>
+                            <li>Creating custom post processing for lower-end devices</li>
+                            <li>Optimize projects for smooth performance on VR and mobile</li>
+                            <li>Creating impostor for LOD</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-item-header">
+                        <h3 class="timeline-item-title">Technical Artist</h3>
+                        <span class="timeline-item-date">Jun 2022 - Present</span>
+                    </div>
+                    <div class="timeline-item-company">Raxy Dev (Self-employed)</div>
+                    <div class="timeline-item-description">
+                        <ul>
+                            <li>Developed Mobile games</li>
+                            <li>Create shader or effect according to team demand</li>
+                            <li>Creating custom post processing optimized for mobile</li>
+                            <li>Optimize projects for low-end mobile devices</li>
+                            <li>Educating team on optimization techniques</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="timeline-item">
+                    <div class="timeline-item-header">
+                        <h3 class="timeline-item-title">Intern Unity Programmer</h3>
+                        <span class="timeline-item-date">Mar 2022 - Mar 2023</span>
+                    </div>
+                    <div class="timeline-item-company">Shinta VR</div>
+                    <div class="timeline-item-description">
+                        <ul>
+                            <li>Developed VR games according to client requirements</li>
+                            <li>Debugging and troubleshooting technical issues</li>
+                            <li>Collaborated with programmer team to solve problems</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -159,15 +594,19 @@
                 <div class="contact-info">
                     <div class="contact-item">
                         <i class="fas fa-envelope"></i>
-                        <p><a href="mailto:your.email@example.com">your.email@example.com</a></p>
+                        <p><a href="mailto:dimas.hutama01@gmail.com">dimas.hutama01@gmail.com</a></p>
                     </div>
                     <div class="contact-item">
-                        <i class="fab fa-github"></i>
-                        <p><a href="https://github.com/yourusername" target="_blank">github.com/yourusername</a></p>
+                        <i class="fas fa-phone"></i>
+                        <p><a href="tel:+6285157633758">+62 85157633758</a></p>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <p>Bekasi, Indonesia</p>
                     </div>
                     <div class="contact-item">
                         <i class="fab fa-linkedin"></i>
-                        <p><a href="https://linkedin.com/in/yourusername" target="_blank">linkedin.com/in/yourusername</a></p>
+                        <p><a href="https://linkedin.com/in/dimas-rizky-hutama" target="_blank">linkedin.com/in/dimas-rizky-hutama</a></p>
                     </div>
                 </div>
                 <form id="contact-form" class="contact-form">
@@ -191,16 +630,16 @@
 
     <footer>
         <div class="container">
-            <p>&copy; <span id="current-year"></span> Your Name. All Rights Reserved.</p>
+            <p>&copy; <span id="current-year"></span> Dimas Rizky Hutama. All Rights Reserved.</p>
             <div class="social-links">
-                <a href="https://github.com/yourusername" target="_blank"><i class="fab fa-github"></i></a>
-                <a href="https://linkedin.com/in/yourusername" target="_blank"><i class="fab fa-linkedin"></i></a>
-                <a href="https://twitter.com/yourusername" target="_blank"><i class="fab fa-twitter"></i></a>
+                <a href="https://linkedin.com/in/dimas-rizky-hutama" target="_blank"><i class="fab fa-linkedin"></i></a>
+                <a href="mailto:dimas.hutama01@gmail.com"><i class="fas fa-envelope"></i></a>
+                <a href="tel:+6285157633758"><i class="fas fa-phone"></i></a>
             </div>
         </div>
     </footer>
 
     <script src="./js/script.js"></script>
-    <script src="./js/particles.js"></script> <!-- Include particles.js -->
+    <script src="./js/particles.js"></script>
 </body>
 </html>
