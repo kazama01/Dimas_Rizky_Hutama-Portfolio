@@ -10,9 +10,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch GitHub repositories
     fetchGitHubRepos(githubUsername);
 
-    // Form submission handler
+    // Form submission handler - remove the alert for Formspree forms
     const contactForm = document.getElementById('contact-form');
-    if (contactForm) {
+    if (contactForm && !contactForm.getAttribute('action').includes('formspree')) {
         contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
             
