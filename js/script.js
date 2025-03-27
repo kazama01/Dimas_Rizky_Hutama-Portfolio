@@ -42,6 +42,30 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Add interactive mouse effect
+document.addEventListener('mousemove', function(e) {
+    let mouseEffect = document.getElementById('mouse-effect');
+    if (!mouseEffect) {
+        mouseEffect = document.createElement('div');
+        mouseEffect.id = 'mouse-effect';
+        document.body.appendChild(mouseEffect);
+    }
+    mouseEffect.style.left = `${e.pageX}px`;
+    mouseEffect.style.top = `${e.pageY}px`;
+});
+
+// Add dynamic section transition
+document.addEventListener('scroll', function() {
+    document.querySelectorAll('section').forEach(section => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+            section.classList.add('visible');
+        } else {
+            section.classList.remove('visible');
+        }
+    });
+});
+
 // Function to fetch GitHub repositories
 function fetchGitHubRepos(username) {
     const projectsContainer = document.getElementById('github-projects');
