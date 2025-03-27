@@ -40,9 +40,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Email link handler
+    const emailLinks = document.querySelectorAll('a[href^="mailto:"]');
+    emailLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const email = this.getAttribute('href').replace('mailto:', '');
+            window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}`, '_blank');
+        });
+    });
 });
 
-// Add interactive mouse effect
+// Add interactive mouse effect with improved tracking
 document.addEventListener('mousemove', function(e) {
     let mouseEffect = document.getElementById('mouse-effect');
     if (!mouseEffect) {
@@ -50,8 +60,32 @@ document.addEventListener('mousemove', function(e) {
         mouseEffect.id = 'mouse-effect';
         document.body.appendChild(mouseEffect);
     }
-    mouseEffect.style.left = `${e.pageX}px`;
-    mouseEffect.style.top = `${e.pageY}px`;
+    
+    // Use clientX/Y or pageX/Y depending on scroll position
+    const x = e.pageX;
+    const y = e.pageY;
+    
+    mouseEffect.style.left = `${x}px`;
+    mouseEffect.style.top = `${y}px`;
+});
+
+// Handle mouse leaving and entering the window
+document.addEventListener('mouseleave', function() {
+    const mouseEffect = document.getElementById('mouse-effect');
+    if (mouseEffect) {
+        mouseEffect.style.opacity = '0';
+    }
+});
+
+document.addEventListener('mouseenter', function(e) {
+    const mouseEffect = document.getElementById('mouse-effect');
+    if (mouseEffect) {
+        mouseEffect.style.opacity = '1';
+        
+        // Update position immediately
+        mouseEffect.style.left = `${e.pageX}px`;
+        mouseEffect.style.top = `${e.pageY}px`;
+    }
 });
 
 // Add dynamic section transition

@@ -759,3 +759,26 @@ section.visible {
     color: #9effeb;
     transition: transform 0.5s, color 0.5s;
 }
+
+#particle-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
+    background-color: transparent;
+}
+
+/* Canvas for particles */
+#particle-container canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    display: block;
+}

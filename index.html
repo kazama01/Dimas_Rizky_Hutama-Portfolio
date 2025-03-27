@@ -611,7 +611,7 @@
                         <p><a href="https://linkedin.com/in/dimas-rizky-hutama" target="_blank">linkedin.com/in/dimas-rizky-hutama</a></p>
                     </div>
                 </div>
-                <form id="contact-form" class="contact-form">
+                <form id="contact-form" class="contact-form" action="https://formspree.io/f/movenvbr" method="POST">
                     <div class="form-group">
                         <label for="name">Name</label>
                         <input type="text" id="name" name="name" required>
@@ -624,6 +624,8 @@
                         <label for="message">Message</label>
                         <textarea id="message" name="message" rows="5" required></textarea>
                     </div>
+                    <input type="hidden" name="_subject" value="New portfolio contact from website">
+                    <input type="hidden" name="_next" value="https://dimasrzh-portfolio.com/thanks.html">
                     <button type="submit" class="btn primary">Send Message</button>
                 </form>
             </div>
