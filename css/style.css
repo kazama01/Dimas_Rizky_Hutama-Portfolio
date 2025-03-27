@@ -692,3 +692,70 @@ section.visible {
         text-align: center;
     }
 }
+
+.gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s;
+    background-color: #1a1a1a; /* Fallback background color */
+}
+
+.gallery-item img[src=""], 
+.gallery-item img:not([src]),
+.gallery-item img[src="images/projects/simple-animation.jpg"],
+.gallery-item img[src="images/projects/melee-combat.jpg"],
+.gallery-item img[src="images/projects/sonar-scan.jpg"],
+.gallery-item img[src="images/projects/dissolve-effect.jpg"],
+.gallery-item img[src="images/projects/portal-effect.jpg"],
+.gallery-item img[src="images/projects/displacement-effect.jpg"],
+.gallery-item img[src="images/projects/snow-particle.jpg"],
+.gallery-item img[src="images/projects/meteor-shower.jpg"],
+.gallery-item img[src="images/projects/fire-particle.jpg"],
+.gallery-item img[src="images/projects/slash-effect.jpg"] {
+    /* Style for missing project images */
+    display: none;
+}
+
+/* Placeholder for missing images */
+.gallery-item img[src=""], 
+.gallery-item img:not([src]),
+.gallery-item img[src="images/projects/simple-animation.jpg"],
+.gallery-item img[src="images/projects/melee-combat.jpg"],
+.gallery-item img[src="images/projects/sonar-scan.jpg"],
+.gallery-item img[src="images/projects/dissolve-effect.jpg"],
+.gallery-item img[src="images/projects/portal-effect.jpg"],
+.gallery-item img[src="images/projects/displacement-effect.jpg"],
+.gallery-item img[src="images/projects/snow-particle.jpg"],
+.gallery-item img[src="images/projects/meteor-shower.jpg"],
+.gallery-item img[src="images/projects/fire-particle.jpg"],
+.gallery-item img[src="images/projects/slash-effect.jpg"] + .gallery-item-overlay {
+    transform: translateY(0);
+}
+
+.gallery-item:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(145deg, #1a1a1a, #242424);
+    z-index: -1;
+}
+
+.gallery-item-placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(145deg, #1a1a1a, #242424);
+    transition: transform 0.5s;
+}
+
+.gallery-item:hover .gallery-item-placeholder i {
+    transform: scale(1.2);
+    color: #9effeb;
+    transition: transform 0.5s, color 0.5s;
+}
