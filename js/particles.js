@@ -2,6 +2,9 @@
 document.addEventListener('DOMContentLoaded', function() {
     const particleContainer = document.getElementById('particle-container');
     
+    // Add a console log to verify script execution
+    console.log('Particles script loaded and running.');
+    
     // Create canvas for particles
     const canvas = document.createElement('canvas');
     canvas.width = window.innerWidth;
