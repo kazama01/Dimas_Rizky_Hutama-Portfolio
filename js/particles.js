@@ -510,7 +510,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Create occasional floating particles - based on config rate
     setInterval(function() {
-        if (Math.random() < config.floatingRate) {
+        // Reduce rate of particle creation for better performance
+        if (Math.random() < config.floatingRate * 0.7) { // Reduced by 30%
             const floatingParticle = document.createElement('div');
             
             // Random starting position (not just bottom)
@@ -616,7 +617,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, fadeInTime + 100);
             }, 100);
         }
-    }, 400);
+    }, 600); // Increased from 400ms to 600ms
     
     // Force an initial parallax update to position all elements
     setTimeout(updateParallax, 100);
@@ -627,63 +628,81 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to update parallax positions
     function updateParallax() {
-        // Get all particles
-        const particles = container.querySelectorAll('div');
-        
-        // Current scroll position
+        // Get current scroll position
         const scrollY = window.scrollY;
         
-        // Apply parallax movement to particles based on scroll position and their depth factor
-        particles.forEach(particle => {
-            // Get the particle's depth factor from data attribute (or use a default)
-            let depthFactor = parseFloat(particle.dataset.parallaxDepth || 0.1);
+        // Select particles for parallax calculation - more selective approach
+        // Process all foreground elements (starType 2) and some of the others
+        const particles = container.querySelectorAll('div');
+        
+        // Process particles with different rates based on visibility priority
+        for (let i = 0; i < particles.length; i++) {
+            const particle = particles[i];
             
-            // Apply different movement behaviors based on particle type
-            if (particle.dataset.isstar === "true") {
-                // Get star type (0=background, 1=mid, 2=foreground)
-                const starType = parseInt(particle.dataset.startype || 0);
+            // Skip processing for certain particles to improve performance
+            // Always process foreground stars (starType 2) for smoothness
+            const starType = parseInt(particle.dataset.startype || -1);
+            
+            // Process particles based on priority (all foreground, some mid-distance, fewer background)
+            // This approach ensures smooth movement where it matters most
+            if (starType === 2 || 
+                (starType === 1 && i % 2 === 0) ||  // Process every 2nd mid-distance star
+                (starType === 0 && i % 3 === 0) ||  // Process every 3rd background star
+                (particle.dataset.isdust === "true" && i % 2 === 0) || // Process every 2nd dust particle
+                (particle.dataset.isfloating === "true")) { // Always process floating particles
                 
-                // Apply very different movement rates based on star type
-                if (starType === 0) {
-                    // Background stars move very slowly
-                    depthFactor *= 0.2;
-                } else if (starType === 1) {
-                    // Mid-distance stars move moderately
-                    depthFactor *= 1.0;
-                } else {
-                    // Foreground stars move quickly
-                    depthFactor *= 3.0;
+                // Get the particle's depth factor from data attribute
+                let depthFactor = parseFloat(particle.dataset.parallaxDepth || 0.1);
+                
+                // Apply different movement behaviors based on particle type
+                if (particle.dataset.isstar === "true") {
+                    // Apply different movement rates based on star type
+                    if (starType === 0) {
+                        // Background stars move very slowly
+                        depthFactor *= 0.2;
+                    } else if (starType === 1) {
+                        // Mid-distance stars move moderately
+                        depthFactor *= 0.6;
+                    } else {
+                        // Foreground stars move quickly but smoothly
+                        depthFactor *= 1.8; // Increased from 1.5 for more noticeable effect
+                    }
+                } else if (particle.dataset.isdust === "true") {
+                    // Dust moves fastest for dramatic effect
+                    depthFactor *= 2.5; // Increased from 2.0 for more pronounced effect
+                } else if (particle.dataset.isfloating === "true") {
+                    // Floating particles have more variable movement
+                    depthFactor *= 1.0; // Increased from 0.8 for smoother visible effect
                 }
-            } else if (particle.dataset.isdust === "true") {
-                // Dust moves fastest - creates foreground effect
-                depthFactor *= 4.0;
-            } else if (particle.dataset.isfloating === "true") {
-                // Floating particles have more variable movement
-                depthFactor *= (Math.random() * 0.5 + 1.2);
+                
+                // Amplify the movement based on config strength
+                depthFactor *= config.parallaxStrength;
+                
+                // Get original position
+                const originalY = parseFloat(particle.dataset.originalY || 0);
+                
+                // Use cubic-bezier easing for a smoother, more natural parallax effect
+                // This gives a slight acceleration/deceleration effect to the movement
+                // Calculate parallax offset with improved precision for smoother motion
+                const parallaxOffset = scrollY * depthFactor * 0.08;
+                
+                // Apply transform with hardware acceleration and easing
+                particle.style.transform = `translate3d(0, ${parallaxOffset}px, 0)`;
+                particle.style.transition = 'transform 0.1s cubic-bezier(0.33, 1, 0.68, 1)';
             }
-            
-            // Amplify the movement based on config strength
-            depthFactor *= config.parallaxStrength;
-            
-            // Get original position
-            const originalY = parseFloat(particle.dataset.originalY || 0);
-            
-            // Calculate parallax offset based on scroll position
-            const parallaxOffset = scrollY * depthFactor * 0.1;
-            
-            // Apply transform - using absolute positioning relative to original position
-            particle.style.transform = `translateY(${parallaxOffset}px)`;
-        });
+        }
     }
     
-    // Scroll event handler using requestAnimationFrame for performance
+    // Use a more efficient scroll event handler with requestAnimationFrame for smoother updates
+    let ticking = false;
+    
     window.addEventListener('scroll', function() {
         if (!ticking) {
+            // Use requestAnimationFrame for smoother, more efficient updates
             window.requestAnimationFrame(function() {
                 updateParallax();
                 ticking = false;
             });
-            
             ticking = true;
         }
     });
