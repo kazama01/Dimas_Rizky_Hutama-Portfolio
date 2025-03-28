@@ -1,6 +1,205 @@
 // js/script.js
 
-document.addEventListener('DOMContentLoaded', function() {
+// WebGPU globals
+let device, context, canvas;
+let uniformBuffer, bindGroup, pipeline;
+
+const shaderCode = `
+struct Uniforms {
+    mousePos: vec2f,
+    resolution: vec2f,
+}
+
+@binding(0) @group(0) var<uniform> uniforms: Uniforms;
+
+@vertex
+fn vertexMain(@builtin(vertex_index) vertexIndex: u32) -> @builtin(position) vec4f {
+    let pos = array(
+        vec2f(-1.0, -1.0),
+        vec2f( 1.0, -1.0),
+        vec2f(-1.0,  1.0),
+        vec2f( 1.0,  1.0),
+    );
+    return vec4f(pos[vertexIndex], 0.0, 1.0);
+}
+
+@fragment
+fn fragmentMain(@builtin(position) pos: vec4f) -> @location(0) vec4f {
+    let uv = pos.xy / uniforms.resolution;
+    let center = uniforms.mousePos / uniforms.resolution;
+    let dist = distance(uv, center);
+    let color = 1.0 - smoothstep(0.0, 0.1, dist);
+    return vec4f(0.39, 1.0, 0.85, color * 0.5); // Aqua color
+}`;
+
+// Mouse position state
+let mouseX = 0;
+let mouseY = 0;
+
+async function initWebGPU() {
+    // Check if WebGPU is supported
+    if (!navigator.gpu) {
+        console.log('WebGPU is not supported in this browser. Skipping WebGPU initialization.');
+        return false;
+    }
+    
+    try {
+        // Request adapter and device
+        const adapter = await navigator.gpu.requestAdapter();
+        if (!adapter) {
+            console.log('No appropriate WebGPU adapter found.');
+            return false;
+        }
+        
+        device = await adapter.requestDevice();
+
+        // Setup canvas
+        canvas = document.createElement('canvas');
+        canvas.style.position = 'fixed';
+        canvas.style.top = '0';
+        canvas.style.left = '0';
+        canvas.style.width = '100%';
+        canvas.style.height = '100%';
+        canvas.style.pointerEvents = 'none';
+        canvas.style.zIndex = '9999';
+        document.body.appendChild(canvas);
+
+        // Configure canvas context
+        context = canvas.getContext('webgpu');
+        if (!context) {
+            console.log('Failed to get WebGPU context.');
+            return false;
+        }
+        
+        const canvasFormat = navigator.gpu.getPreferredCanvasFormat();
+        context.configure({
+            device,
+            format: canvasFormat,
+            alphaMode: 'premultiplied',
+        });
+
+        // Create uniform buffer - size 16 bytes for 2 vec2f (4 floats * 4 bytes)
+        uniformBuffer = device.createBuffer({
+            size: 16, 
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+
+        // Create bind group layout
+        const bindGroupLayout = device.createBindGroupLayout({
+            entries: [{
+                binding: 0,
+                visibility: GPUShaderStage.FRAGMENT,
+                buffer: { type: 'uniform' }
+            }]
+        });
+
+        // Create pipeline layout
+        const pipelineLayout = device.createPipelineLayout({
+            bindGroupLayouts: [bindGroupLayout]
+        });
+
+        // Create bind group
+        bindGroup = device.createBindGroup({
+            layout: bindGroupLayout,
+            entries: [{
+                binding: 0,
+                resource: { buffer: uniformBuffer }
+            }]
+        });
+
+        // Create render pipeline
+        pipeline = device.createRenderPipeline({
+            layout: pipelineLayout,
+            vertex: {
+                module: device.createShaderModule({ code: shaderCode }),
+                entryPoint: 'vertexMain',
+            },
+            fragment: {
+                module: device.createShaderModule({ code: shaderCode }),
+                entryPoint: 'fragmentMain',
+                targets: [{
+                    format: canvasFormat,
+                    blend: {
+                        color: {
+                            srcFactor: 'src-alpha',
+                            dstFactor: 'one-minus-src-alpha',
+                        },
+                        alpha: {
+                            srcFactor: 'one',
+                            dstFactor: 'one-minus-src-alpha',
+                        },
+                    },
+                }],
+            },
+            primitive: {
+                topology: 'triangle-strip',
+                stripIndexFormat: undefined,
+            },
+        });
+
+        // Start render loop
+        requestAnimationFrame(render);
+        return true;
+    } catch (error) {
+        console.error('WebGPU initialization failed:', error);
+        return false;
+    }
+}
+
+function updateUniforms() {
+    if (!device || !uniformBuffer) return;
+    
+    const uniformData = new Float32Array([
+        mouseX, mouseY,
+        canvas.width, canvas.height
+    ]);
+    device.queue.writeBuffer(uniformBuffer, 0, uniformData);
+}
+
+function render() {
+    if (!device || !context || !pipeline) return;
+    
+    updateUniforms();
+
+    const commandEncoder = device.createCommandEncoder();
+    const renderPass = commandEncoder.beginRenderPass({
+        colorAttachments: [{
+            view: context.getCurrentTexture().createView(),
+            clearValue: { r: 0, g: 0, b: 0, a: 0 },
+            loadOp: 'clear',
+            storeOp: 'store',
+        }],
+    });
+
+    renderPass.setPipeline(pipeline);
+    renderPass.setBindGroup(0, bindGroup);
+    renderPass.draw(4);
+    renderPass.end();
+
+    device.queue.submit([commandEncoder.finish()]);
+    requestAnimationFrame(render);
+}
+
+// Initialize and setup event listeners when DOM is ready
+document.addEventListener('DOMContentLoaded', async () => {
+    const webGPUInitialized = await initWebGPU();
+    
+    if (webGPUInitialized) {
+        // Update canvas size when window resizes
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Track mouse position
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+    }
+
     // Get current year for footer
     document.getElementById('current-year').textContent = new Date().getFullYear();
 
@@ -98,49 +297,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 2000);
         });
     }
-});
-
-// Add interactive mouse effect with fixed position tracking
-document.addEventListener('mousemove', function(e) {
-    let mouseEffect = document.getElementById('mouse-effect');
-    if (!mouseEffect) {
-        mouseEffect = document.createElement('div');
-        mouseEffect.id = 'mouse-effect';
-        document.body.appendChild(mouseEffect);
-    }
-    
-    // Use clientX/Y for accurate cursor position
-    mouseEffect.style.left = `${e.clientX}px`;
-    mouseEffect.style.top = `${e.clientY}px`;
-});
-
-// Handle mouse leaving and entering the window
-document.addEventListener('mouseleave', function() {
-    const mouseEffect = document.getElementById('mouse-effect');
-    if (mouseEffect) {
-        mouseEffect.style.opacity = '0';
-    }
-});
-
-document.addEventListener('mouseenter', function(e) {
-    const mouseEffect = document.getElementById('mouse-effect');
-    if (mouseEffect) {
-        mouseEffect.style.opacity = '1';
-        mouseEffect.style.left = `${e.clientX}px`;
-        mouseEffect.style.top = `${e.clientY}px`;
-    }
-});
-
-// Add dynamic section transition
-document.addEventListener('scroll', function() {
-    document.querySelectorAll('section').forEach(section => {
-        const rect = section.getBoundingClientRect();
-        if (rect.top < window.innerHeight && rect.bottom > 0) {
-            section.classList.add('visible');
-        } else {
-            section.classList.remove('visible');
-        }
-    });
 });
 
 // Function to fetch GitHub repositories
