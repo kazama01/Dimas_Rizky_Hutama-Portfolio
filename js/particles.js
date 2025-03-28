@@ -12,17 +12,45 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clear any existing content
     container.innerHTML = '';
     
-    // Configuration options for particle system - can be adjusted
-    const config = {
+    // Default configuration options for particle system
+    const defaultConfig = {
         particleCount: 400,      // Number of stars
         dustCloudCount: 300,     // Number of dust particles
         floatingRate: 0.3,       // Rate of floating particles (0-1)
-        parallaxStrength: 8,     // Multiplier for parallax effect (1-10)
-        starBrightness: 0.5,     // Brightness of stars (0-1)
-        particleMovement: 0.4    // Movement rate of particles (0-1)
+        parallaxStrength: 0.5,   // Multiplier for parallax effect (1-10)
+        starBrightness: 1,       // Brightness of stars (0-1)
+        particleMovement: 0.7    // Movement rate of particles (0-1)
     };
     
-    // Add controls to the page if needed
+    // Load saved configuration from localStorage if available
+    let config = loadParticleConfig(defaultConfig);
+    
+    // Function to save config to localStorage
+    function saveParticleConfig(config) {
+        try {
+            localStorage.setItem('particleConfig', JSON.stringify(config));
+            console.log('Particle settings saved to localStorage');
+        } catch (e) {
+            console.warn('Could not save particle settings to localStorage:', e);
+        }
+    }
+    
+    // Function to load config from localStorage
+    function loadParticleConfig(defaultConfig) {
+        try {
+            const savedConfig = localStorage.getItem('particleConfig');
+            if (savedConfig) {
+                const parsedConfig = JSON.parse(savedConfig);
+                console.log('Loaded particle settings from localStorage');
+                return { ...defaultConfig, ...parsedConfig };
+            }
+        } catch (e) {
+            console.warn('Could not load particle settings from localStorage:', e);
+        }
+        return { ...defaultConfig };
+    }
+    
+    // Add controls to the page
     addParticleControls(config);
     
     // Set container styles explicitly to ensure proper rendering
@@ -87,7 +115,45 @@ document.addEventListener('DOMContentLoaded', function() {
         createDustParticle();
     }
     
-    // Enhanced particle creation with fade in/out lifecycle
+    // Add star shape CSS to the document
+    const starStyles = document.createElement('style');
+    starStyles.innerHTML = `
+        .star-shape {
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+        
+        .tiny-star {
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+            transform: scale(0.8);
+        }
+        
+        .dust-particle {
+            border-radius: 50%;
+        }
+        
+        @keyframes rotateStar {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        
+        @keyframes twinkleStar {
+            0%, 100% {
+                opacity: var(--base-opacity, 0.7);
+                transform: scale(1) rotate(0deg);
+            }
+            50% {
+                opacity: var(--max-opacity, 1);
+                transform: scale(1.2) rotate(45deg);
+            }
+        }
+    `;
+    document.head.appendChild(starStyles);
+    
+    // Enhanced particle creation with fade in/out lifecycle and star shapes
     function createParticle() {
         const particle = document.createElement('div');
         
@@ -97,17 +163,16 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Size based on star type - background stars are smaller, foreground stars are larger
         let size;
-        let isStar = true;
         
         if (starType === 0) {
             // Background stars (small, move very slowly)
-            size = Math.random() * 2 + 0.5;
+            size = Math.random() * 4 + 2;
         } else if (starType === 1) {
             // Mid-distance stars (medium, move moderately)
-            size = Math.random() * 3 + 1.5;
+            size = Math.random() * 5 + 3;
         } else {
             // Foreground stars (larger, move faster)
-            size = Math.random() * 4 + 2.5;
+            size = Math.random() * 7 + 4;
         }
         
         // Dynamic positioning across the entire viewport
@@ -145,11 +210,28 @@ document.addEventListener('DOMContentLoaded', function() {
             particle.dataset.brightness = 0.9;
         }
         
-        // Apply styles
+        // Apply styles for star shape
         particle.style.position = 'absolute';
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
-        particle.style.borderRadius = '50%';
+        
+        // Apply star shape class instead of border-radius
+        // Use different shape classes based on size to ensure visibility
+        if (size < 3) {
+            // Very small stars remain circular for better visibility
+            particle.style.borderRadius = '50%';
+        } else {
+            // Use star shape for larger particles
+            particle.classList.add('star-shape');
+            
+            // Add rotation to some stars
+            if (Math.random() < 0.5) {
+                const rotationAngle = Math.floor(Math.random() * 180);
+                particle.style.transform = `rotate(${rotationAngle}deg)`;
+            }
+        }
+        
+        // Position
         particle.style.left = `${posX}%`;
         particle.style.top = `${posY}%`;
         particle.style.opacity = '0'; // Start completely invisible
@@ -182,6 +264,18 @@ document.addEventListener('DOMContentLoaded', function() {
         // Add glow effect based on the star's color and type
         const glowSize = starType === 2 ? Math.random() * 8 + 4 : Math.random() * 4 + 1;
         particle.style.boxShadow = `0 0 ${glowSize}px 1px ${starColor}`;
+        
+        // Add animation for some stars (twinkle effect)
+        if (Math.random() < 0.3) {
+            const animationDuration = Math.random() * 4 + 3;
+            particle.style.animation = `twinkleStar ${animationDuration}s ease-in-out infinite`;
+            
+            // Set CSS variables for the animation
+            const baseOpacity = Math.random() * 0.3 + config.starBrightness * parseFloat(particle.dataset.brightness || 0.5);
+            const maxOpacity = baseOpacity * 1.5;
+            particle.style.setProperty('--base-opacity', baseOpacity);
+            particle.style.setProperty('--max-opacity', maxOpacity);
+        }
         
         // Start completely transparent
         particle.style.opacity = '0';
@@ -272,11 +366,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const visibleTime = Math.random() * 3000 + 2000;
         const fadeOutTime = Math.random() * 1000 + 500;
         
-        // Styling dust
-        dust.style.position = 'absolute'; // Changed from fixed to absolute to scroll with page
+        // Styling dust - keep dust particles as circles
+        dust.style.position = 'absolute';
         dust.style.width = `${size}px`;
         dust.style.height = `${size}px`;
-        dust.style.borderRadius = '50%';
+        dust.classList.add('dust-particle');
         dust.style.left = `${posX}%`;
         dust.style.top = `${posY}%`;
         dust.style.zIndex = '2';
@@ -387,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const isSpecial = Math.random() < 0.2;
             
             // Set size and corresponding parallax depth factor
-            const size = isSpecial ? Math.random() * 4 + 2 : Math.random() * 1.5 + 0.5;
+            const size = isSpecial ? Math.random() * 6 + 3 : Math.random() * 2 + 0.5;
             const parallaxDepth = isSpecial ? 0.2 + (size / 10) : 0.35 + (1 / size) * 0.2;
             
             // Setup fade timing
@@ -405,23 +499,34 @@ document.addEventListener('DOMContentLoaded', function() {
             floatingParticle.dataset.originalY = startY;
             
             if (isSpecial) {
-                // Special particles are slightly larger and colored (stars)
+                // Special particles are larger stars
+                floatingParticle.style.width = `${size}px`;
+                floatingParticle.style.height = `${size}px`;
+                
+                // Use star shape if large enough
+                if (size > 3) {
+                    floatingParticle.classList.add('star-shape');
+                    
+                    // Random rotation
+                    const rotationAngle = Math.floor(Math.random() * 180);
+                    floatingParticle.style.transform = `rotate(${rotationAngle}deg)`;
+                } else {
+                    floatingParticle.style.borderRadius = '50%';
+                }
+                
                 const colorIndex = Math.floor(Math.random() * starColors.length);
-                floatingParticle.style.width = `${Math.random() * 4 + 2}px`;
-                floatingParticle.style.height = `${Math.random() * 4 + 2}px`;
                 floatingParticle.style.backgroundColor = starColors[colorIndex];
                 floatingParticle.style.boxShadow = `0 0 4px ${starColors[colorIndex]}`;
-                floatingParticle.style.opacity = Math.random() * 0.7 + 0.3;
             } else {
-                // Tiny dust particles
-                floatingParticle.style.width = `${Math.random() * 1.5 + 0.5}px`;
-                floatingParticle.style.height = `${Math.random() * 1.5 + 0.5}px`;
+                // Tiny dust particles remain circular
+                floatingParticle.style.width = `${size}px`;
+                floatingParticle.style.height = `${size}px`;
+                floatingParticle.classList.add('dust-particle');
+                
                 const dustColorIndex = Math.floor(Math.random() * dustColors.length);
                 floatingParticle.style.backgroundColor = dustColors[dustColorIndex];
-                floatingParticle.style.opacity = Math.random() * 0.2 + 0.05;
             }
             
-            floatingParticle.style.borderRadius = '50%';
             floatingParticle.style.left = `${startX}%`;
             floatingParticle.style.top = `${startY}%`;
             
@@ -627,6 +732,8 @@ document.addEventListener('DOMContentLoaded', function() {
             slider.addEventListener('input', () => {
                 labelElement.textContent = label + ': ' + slider.value;
                 onChange(parseFloat(slider.value));
+                // Save settings whenever a slider changes
+                saveParticleConfig(config);
             });
             
             sliderContainer.appendChild(labelElement);
@@ -716,11 +823,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         resetButton.addEventListener('click', () => {
             // Reset to default values
-            config.particleCount = 240;
-            config.dustCloudCount = 150;
-            config.floatingRate = 0.3;
-            config.parallaxStrength = 3;
-            config.starBrightness = 0.5;
+            config.particleCount = defaultConfig.particleCount;
+            config.dustCloudCount = defaultConfig.dustCloudCount;
+            config.floatingRate = defaultConfig.floatingRate;
+            config.parallaxStrength = defaultConfig.parallaxStrength;
+            config.starBrightness = defaultConfig.starBrightness;
+            config.particleMovement = defaultConfig.particleMovement;
+            
+            // Clear saved settings
+            localStorage.removeItem('particleConfig');
             
             // Refresh UI
             container.innerHTML = '';
@@ -748,6 +859,42 @@ document.addEventListener('DOMContentLoaded', function() {
             updateParallax();
         });
         
+        // Add clear cache button
+        const clearCacheButton = document.createElement('button');
+        clearCacheButton.textContent = 'Clear Saved Settings';
+        clearCacheButton.style.backgroundColor = '#666';
+        clearCacheButton.style.border = 'none';
+        clearCacheButton.style.padding = '5px 10px';
+        clearCacheButton.style.borderRadius = '3px';
+        clearCacheButton.style.cursor = 'pointer';
+        clearCacheButton.style.fontSize = '12px';
+        clearCacheButton.style.color = '#fff';
+        clearCacheButton.style.width = '100%';
+        clearCacheButton.style.marginTop = '10px';
+        
+        clearCacheButton.addEventListener('click', () => {
+            // Clear saved settings
+            localStorage.removeItem('particleConfig');
+            
+            // Show confirmation
+            const message = document.createElement('div');
+            message.textContent = 'Settings cleared! Refresh to load defaults.';
+            message.style.color = '#ff6464';
+            message.style.marginTop = '10px';
+            message.style.fontSize = '11px';
+            message.style.textAlign = 'center';
+            
+            // Replace the button with the message
+            clearCacheButton.parentNode.replaceChild(message, clearCacheButton);
+            
+            // Remove message after 3 seconds
+            setTimeout(() => {
+                if (message.parentNode) {
+                    message.parentNode.replaceChild(clearCacheButton, message);
+                }
+            }, 3000);
+        });
+        
         // Add controls to the container
         controlsContent.appendChild(parallaxSlider);
         controlsContent.appendChild(starCountSlider);
@@ -756,6 +903,7 @@ document.addEventListener('DOMContentLoaded', function() {
         controlsContent.appendChild(brightnessSlider);
         controlsContent.appendChild(movementSlider);
         controlsContent.appendChild(resetButton);
+        controlsContent.appendChild(clearCacheButton);
         
         controlsContainer.appendChild(controlsContent);
         
