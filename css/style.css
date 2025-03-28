@@ -27,19 +27,22 @@ h1, h2, h3, h4, h5, h6 {
 
 .section-title {
     font-size: 2.5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 3rem;
+    padding-bottom: 1rem;
     position: relative;
     display: inline-block;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .section-title:after {
     content: '';
     position: absolute;
-    width: 60px;
+    width: 80px;
     height: 3px;
     background: #64ffda;
-    bottom: -10px;
+    bottom: 0;
     left: 0;
+    box-shadow: 0 0 8px rgba(100, 255, 218, 0.8);
 }
 
 /* Header styles */
@@ -116,6 +119,12 @@ header nav ul li a:hover:after {
     padding: 180px 0 100px;
     position: relative;
     overflow: hidden;
+    background: linear-gradient(to bottom, rgba(10, 10, 15, 0.8), rgba(15, 15, 20, 0.4));
+    border-bottom: none;
+}
+
+.hero:after {
+    display: none;
 }
 
 .hero-content {
@@ -599,6 +608,19 @@ section {
     transition: opacity 0.8s ease, transform 0.8s ease;
     position: relative;
     z-index: 1; /* Ensure all content has a higher z-index than particles */
+    padding: 100px 0;
+    border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+}
+
+section:after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10%;
+    height: 1px;
+    background: #64ffda;
 }
 
 section.visible {
@@ -794,4 +816,62 @@ section.visible {
 .container, section, header, footer {
     position: relative;
     z-index: 1; /* Ensure all content has a higher z-index than particles */
+}
+
+/* Section distinction styles */
+section {
+    position: relative;
+    z-index: 1;
+    padding: 100px 0;
+    border-bottom: 1px solid rgba(100, 255, 218, 0.1);
+}
+
+section:after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10%;
+    height: 1px;
+    background: #64ffda;
+}
+
+/* Add subtle background variation to alternate sections */
+section:nth-child(odd) {
+    background-color: rgba(15, 15, 20, 0.3);
+}
+
+section:nth-child(even) {
+    background-color: rgba(20, 20, 25, 0.3);
+}
+
+/* Hero section needs special treatment */
+.hero {
+    background: linear-gradient(to bottom, rgba(10, 10, 15, 0.8), rgba(15, 15, 20, 0.4));
+    border-bottom: none;
+}
+
+.hero:after {
+    display: none;
+}
+
+/* Section headings with improved visibility */
+.section-title {
+    margin-bottom: 3rem;
+    padding-bottom: 1rem;
+    position: relative;
+    display: inline-block;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.section-title:after {
+    content: '';
+    position: absolute;
+    width: 80px;
+    height: 3px;
+    background: #64ffda;
+    bottom: 0;
+    left: 0;
+    box-shadow: 0 0 8px rgba(100, 255, 218, 0.8);
 }
