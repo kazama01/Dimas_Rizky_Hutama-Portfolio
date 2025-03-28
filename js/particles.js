@@ -22,14 +22,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const connectionDistance = 120;
     const mouseRadius = 150;
     
-    // Mouse position tracking
+    // Adjust mouse position to account for scrolling
     let mouseX = 0;
     let mouseY = 0;
     
-    // Track mouse position
-    document.addEventListener('mousemove', function(e) {
-        mouseX = e.clientX;
-        mouseY = e.clientY;
+    // Track mouse position with scroll offset
+    window.addEventListener('mousemove', function(e) {
+        mouseX = e.clientX + window.scrollX;
+        mouseY = e.clientY + window.scrollY;
     });
     
     // Resize handler
@@ -178,19 +178,25 @@ document.addEventListener('DOMContentLoaded', function() {
     let time = 0;
     function animate() {
         time += 0.1;
-        requestAnimationFrame(animate);
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         // Draw connections first (under particles)
         drawConnections();
         
         // Update and draw particles
-        for (let i = 0; i < particles.length; i++) {
-            particles[i].update(time);
-            particles[i].draw();
-        }
+        particles.forEach(particle => {
+            particle.update(time);
+            particle.draw();
+        });
+
+        requestAnimationFrame(animate);
     }
     
+    // Ensure the canvas is appended to the DOM and visible
+    if (!particleContainer.contains(canvas)) {
+        particleContainer.appendChild(canvas);
+    }
+
     // Start animation
     animate();
 });
