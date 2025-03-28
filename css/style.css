@@ -15,7 +15,7 @@ body, html {
     margin: 0 auto;
     padding: 0 15px;
     position: relative;
-    z-index: 1; /* Ensure content appears above background effects */
+    z-index: 1; /* Ensure all content has a higher z-index than particles */
 }
 
 /* Typography */
@@ -617,7 +617,7 @@ section {
     transform: translateY(30px);
     transition: opacity 0.8s ease, transform 0.8s ease;
     position: relative;
-    z-index: 1; /* Ensure content appears above background effects */
+    z-index: 1; /* Ensure all content has a higher z-index than particles */
     padding: 100px 0;
     border-bottom: 1px solid rgba(100, 255, 218, 0.2); /* Increased opacity */
     margin-bottom: 30px; /* Added margin for better spacing */
@@ -801,32 +801,33 @@ section.visible {
     transition: transform 0.5s, color 0.5s;
 }
 
-/* Galaxy background styles */
-#galaxy-container {
+#particle-container {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: 0; /* Behind content but visible */
+    z-index: 0; /* Changed from -1 to 0 to ensure visibility while still being behind content */
     overflow: hidden;
+    background-color: transparent;
 }
 
-#galaxy-container canvas {
+/* Canvas for particles */
+#particle-container canvas {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: 0;
+    z-index: 0; /* Changed from -1 to 0 */
     display: block;
 }
 
-/* Ensure content appears above background effects */
+/* Ensure content appears above particles */
 .container, section, header, footer {
     position: relative;
-    z-index: 1; 
+    z-index: 1; /* Ensure all content has a higher z-index than particles */
 }
 
 /* Section distinction styles */

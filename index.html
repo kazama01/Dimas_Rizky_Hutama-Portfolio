@@ -30,6 +30,18 @@
             transform: translateY(-3px);
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         }
+
+        /* Particle effect container */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
         
         /* Skill bar styles */
         .skill-bar {
@@ -192,7 +204,7 @@
     </style>
 </head>
 <body>
-    <div id="galaxy-container"></div> <!-- Galaxy background effect -->
+    <div id="particle-container"></div> <!-- Particle effect -->
     <div id="mouse-effect"></div> <!-- Interactive mouse effect -->
 
     <header>
@@ -640,6 +652,6 @@
     </footer>
 
     <script src="js/script.js"></script>
-    <script src="js/galaxyBackground.js"></script>
+    <script src="js/particles.js"></script>
 </body>
 </html>
