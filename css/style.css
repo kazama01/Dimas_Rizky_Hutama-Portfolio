@@ -138,12 +138,49 @@ header nav ul li a:hover:after {
     font-size: 4rem;
     margin-bottom: 1rem;
     line-height: 1.1;
+    /* 3D text effect for name */
+    text-shadow: 
+        0 1px 0 #ccc,
+        0 2px 0 #c9c9c9,
+        0 3px 0 #bbb,
+        0 4px 0 #b9b9b9,
+        0 5px 0 #aaa,
+        0 6px 1px rgba(0,0,0,.1),
+        0 0 5px rgba(0,0,0,.1),
+        0 1px 3px rgba(0,0,0,.3),
+        0 3px 5px rgba(0,0,0,.2),
+        0 5px 10px rgba(0,0,0,.25),
+        0 10px 10px rgba(0,0,0,.2),
+        0 20px 20px rgba(0,0,0,.15);
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transform: translateZ(0);
+    transition: transform 0.3s ease;
+}
+
+.hero h2:hover {
+    transform: translateY(-5px) translateZ(10px);
 }
 
 .hero h3 {
     font-size: 2rem;
     color: #64ffda;
     margin-bottom: 1.5rem;
+    /* 3D text effect for title */
+    text-shadow: 
+        0 1px 0 rgba(100, 255, 218, 0.4),
+        0 2px 0 rgba(100, 255, 218, 0.3),
+        0 3px 0 rgba(100, 255, 218, 0.2),
+        0 4px 0 rgba(100, 255, 218, 0.1),
+        0 5px 5px rgba(0,0,0,0.3);
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    transform: translateZ(0);
+    transition: transform 0.3s ease;
+}
+
+.hero h3:hover {
+    transform: translateY(-3px) translateZ(5px) rotateX(5deg);
 }
 
 .hero p {
@@ -156,6 +193,11 @@ header nav ul li a:hover:after {
 .hero .highlight {
     color: #64ffda;
     font-weight: 700;
+    /* Enhanced highlight effect */
+    text-shadow: 
+        0 0 5px rgba(100, 255, 218, 0.5),
+        0 0 10px rgba(100, 255, 218, 0.3),
+        0 0 15px rgba(100, 255, 218, 0.1);
 }
 
 .cta-buttons .btn {
