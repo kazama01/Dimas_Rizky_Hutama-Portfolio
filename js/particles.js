@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
     nebulaOverlay.style.width = '100%';
     nebulaOverlay.style.height = '100%';
     nebulaOverlay.style.opacity = '0.3';
-    nebulaOverlay.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 600 600\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")';
+    nebulaOverlay.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 600 600\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3C/rect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")';
     nebulaOverlay.style.filter = 'hue-rotate(240deg) saturate(150%)';
     nebulaOverlay.style.mixBlendMode = 'overlay';
     nebulaOverlay.style.zIndex = '0';
@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const posX = Math.random() * 120 - 10; // Allow slight overflow
         const posY = Math.random() * 120 - 10;
         
-        // Set fade-in and fade-out timing for the lifecycle - SPEED UP (reduced all times by ~50%)
+        // Set fade-in and fade-out timing for the lifecycle
         const fadeInTime = starType === 0 ? Math.random() * 1000 + 1500 : 
                           starType === 1 ? Math.random() * 800 + 1000 : 
                           Math.random() * 500 + 500;
@@ -351,6 +351,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Turn off transition temporarily to avoid animating the position change
                         particle.style.transition = 'none';
                         
+                        // Wait to ensure opacity transition is complete before repositioning
+                        // Force a browser layout calculation before changing position
+                        void particle.offsetWidth;
+                        
                         // Update position
                         particle.style.left = `${newPosX}%`;
                         particle.style.top = `${newPosY}%`;
@@ -358,7 +362,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         particle.dataset.originalY = newPosY;
                         
                         // Reset any transforms
-                        particle.style.transform = '';
+                        if (size >= 4 && Math.random() < 0.5) {
+                            const rotationAngle = Math.floor(Math.random() * 180);
+                            particle.style.transform = `rotate(${rotationAngle}deg)`;
+                        } else {
+                            particle.style.transform = '';
+                        }
                         
                         // Force reflow to ensure transition is disabled during position change
                         void particle.offsetWidth;
@@ -366,7 +375,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Restart the cycle with fade in
                         particle.style.transition = `opacity ${fadeInTime}ms ease-in`;
                         
-                        // Start the fade in again after a small delay - REDUCED delay
+                        // Start the fade in again after a small delay to ensure the position change is not visible
                         setTimeout(() => {
                             particle.style.opacity = targetOpacity.toString();
                             
@@ -377,12 +386,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                 setTimeout(() => {
                                     particle.style.opacity = '0';
                                 }, visibleTime);
-                            }, fadeInTime + 50); // Reduced buffer time
-                        }, 50); // Reduced delay
-                    }, fadeOutTime + 50); // Reduced wait time
+                            }, fadeInTime + 100); // Buffer time after fade in completes
+                        }, 100); // Delay for position change to complete
+                    }, fadeOutTime + 200); // Additional wait time after opacity reaches 0
                 }, visibleTime);
-            }, fadeInTime + 50); // Reduced buffer after fade in
-        }, Math.random() * 1500); // Reduced initial delay by 50%
+            }, fadeInTime + 100); // Buffer after fade in
+        }, Math.random() * 2000); // Initial random delay spread
         
         return particle;
     }
@@ -454,6 +463,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Turn off transition temporarily
                         dust.style.transition = 'none';
                         
+                        // Wait to ensure opacity transition is complete
+                        void dust.offsetWidth;
+                        
                         // Update position
                         dust.style.left = `${newPosX}%`;
                         dust.style.top = `${newPosY}%`;
@@ -469,7 +481,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Restart the cycle with fade in
                         dust.style.transition = `opacity ${fadeInTime}ms ease-in`;
                         
-                        // Start the fade in again after a small delay
+                        // Start the fade in again after a small delay to ensure the position change is not visible
                         setTimeout(() => {
                             dust.style.opacity = targetOpacity.toString();
                             
@@ -481,8 +493,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                     dust.style.opacity = '0';
                                 }, visibleTime);
                             }, fadeInTime + 100);
-                        }, 100);
-                    }, fadeOutTime + 100);
+                        }, 200); // Increased delay for position change to complete
+                    }, fadeOutTime + 200); // Additional wait time after opacity reaches 0
                 }, visibleTime);
             }, fadeInTime + 100);
         }, Math.random() * 2000); // Random initial delay

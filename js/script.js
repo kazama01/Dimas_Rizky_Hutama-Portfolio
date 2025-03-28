@@ -1,8 +1,12 @@
 // js/script.js
 
-// WebGPU globals
+// WebGPU globals - initialized only if WebGPU is supported
 let device, context, canvas;
 let uniformBuffer, bindGroup, pipeline;
+
+// Fallback cursor effect
+let fallbackCursorActive = false;
+let cursorEffect;
 
 const shaderCode = `
 struct Uniforms {
@@ -36,10 +40,74 @@ fn fragmentMain(@builtin(position) pos: vec4f) -> @location(0) vec4f {
 let mouseX = 0;
 let mouseY = 0;
 
+// Create a fallback cursor effect using CSS/HTML
+function createFallbackCursorEffect() {
+    console.log('Creating fallback cursor effect');
+    
+    // Create a div for the cursor effect
+    cursorEffect = document.createElement('div');
+    cursorEffect.id = 'mouse-effect';
+    cursorEffect.style.position = 'fixed';
+    cursorEffect.style.width = '30px';
+    cursorEffect.style.height = '30px';
+    cursorEffect.style.borderRadius = '50%';
+    cursorEffect.style.backgroundColor = 'rgba(100, 255, 218, 0.2)';
+    cursorEffect.style.boxShadow = '0 0 15px rgba(100, 255, 218, 0.5)';
+    cursorEffect.style.transform = 'translate(-50%, -50%)';
+    cursorEffect.style.pointerEvents = 'none';
+    cursorEffect.style.zIndex = '9999';
+    cursorEffect.style.transition = 'width 0.3s, height 0.3s, opacity 0.3s';
+    
+    // Add a second element for additional effect
+    const innerCursor = document.createElement('div');
+    innerCursor.style.position = 'absolute';
+    innerCursor.style.top = '50%';
+    innerCursor.style.left = '50%';
+    innerCursor.style.width = '5px';
+    innerCursor.style.height = '5px';
+    innerCursor.style.borderRadius = '50%';
+    innerCursor.style.backgroundColor = 'rgba(100, 255, 218, 1)';
+    innerCursor.style.transform = 'translate(-50%, -50%)';
+    
+    // Append the elements
+    cursorEffect.appendChild(innerCursor);
+    document.body.appendChild(cursorEffect);
+
+    // Update cursor position on mouse move
+    document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        if (cursorEffect) {
+            cursorEffect.style.left = mouseX + 'px';
+            cursorEffect.style.top = mouseY + 'px';
+        }
+    });
+
+    // Add pulse effect on click
+    document.addEventListener('mousedown', () => {
+        if (cursorEffect) {
+            cursorEffect.style.width = '40px';
+            cursorEffect.style.height = '40px';
+            cursorEffect.style.opacity = '0.8';
+        }
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (cursorEffect) {
+            cursorEffect.style.width = '30px';
+            cursorEffect.style.height = '30px';
+            cursorEffect.style.opacity = '1';
+        }
+    });
+
+    fallbackCursorActive = true;
+}
+
 async function initWebGPU() {
     // Check if WebGPU is supported
     if (!navigator.gpu) {
-        console.log('WebGPU is not supported in this browser. Skipping WebGPU initialization.');
+        console.log('WebGPU is not supported in this browser. Using fallback cursor effect.');
+        createFallbackCursorEffect();
         return false;
     }
     
@@ -47,7 +115,8 @@ async function initWebGPU() {
         // Request adapter and device
         const adapter = await navigator.gpu.requestAdapter();
         if (!adapter) {
-            console.log('No appropriate WebGPU adapter found.');
+            console.log('No appropriate WebGPU adapter found. Using fallback cursor effect.');
+            createFallbackCursorEffect();
             return false;
         }
         
@@ -67,7 +136,9 @@ async function initWebGPU() {
         // Configure canvas context
         context = canvas.getContext('webgpu');
         if (!context) {
-            console.log('Failed to get WebGPU context.');
+            console.log('Failed to get WebGPU context. Using fallback cursor effect.');
+            document.body.removeChild(canvas);
+            createFallbackCursorEffect();
             return false;
         }
         
@@ -142,6 +213,10 @@ async function initWebGPU() {
         return true;
     } catch (error) {
         console.error('WebGPU initialization failed:', error);
+        if (canvas && canvas.parentNode) {
+            document.body.removeChild(canvas);
+        }
+        createFallbackCursorEffect();
         return false;
     }
 }
@@ -182,26 +257,44 @@ function render() {
 
 // Initialize and setup event listeners when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
-    const webGPUInitialized = await initWebGPU();
+    console.log('DOM content loaded');
     
-    if (webGPUInitialized) {
-        // Update canvas size when window resizes
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+    // Always create the fallback cursor first
+    createFallbackCursorEffect();
+    
+    try {
+        // Try to initialize WebGPU
+        const webGPUInitialized = await initWebGPU();
+        
+        if (webGPUInitialized) {
+            console.log('WebGPU initialized successfully');
+            // Update canvas size when window resizes
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
 
-        // Track mouse position
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-        });
+            // Track mouse position for WebGPU
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+        }
+    } catch (error) {
+        console.error('Error during initialization:', error);
+        // Ensure fallback is active
+        if (!fallbackCursorActive) {
+            createFallbackCursorEffect();
+        }
     }
 
     // Get current year for footer
-    document.getElementById('current-year').textContent = new Date().getFullYear();
+    const yearElement = document.getElementById('current-year');
+    if (yearElement) {
+        yearElement.textContent = new Date().getFullYear();
+    }
 
     // GitHub username - replace with your own
     const githubUsername = 'yourusername';
