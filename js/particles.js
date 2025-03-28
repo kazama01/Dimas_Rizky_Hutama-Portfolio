@@ -1,130 +1,131 @@
 // Enhanced particles effect with dust-like particles
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Particles script executing...');
+    
+    // Get the particle container
     const particleContainer = document.getElementById('particle-container');
+    if (!particleContainer) {
+        console.error('Particle container not found!');
+        return;
+    }
     
-    // Add a console log to verify script execution
-    console.log('Particles script loaded and running.');
+    console.log('Particle container found, creating canvas...');
     
-    // Create canvas for particles
+    // Create canvas for particles with explicit dimensions
     const canvas = document.createElement('canvas');
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    canvas.style.position = 'absolute';
+    canvas.style.position = 'fixed'; // Use fixed instead of absolute
     canvas.style.top = '0';
     canvas.style.left = '0';
+    canvas.style.zIndex = '-1';
+    canvas.style.pointerEvents = 'none';
+    
+    // Ensure canvas is appended to the DOM
+    while (particleContainer.firstChild) {
+        particleContainer.removeChild(particleContainer.firstChild);
+    }
     particleContainer.appendChild(canvas);
     
-    const ctx = canvas.getContext('2d');
+    console.log('Canvas created and appended to container');
     
-    // Particle system configuration - increased count and variety
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+        console.error('Could not get canvas context!');
+        return;
+    }
+    
+    // Particle system configuration
     const particles = [];
-    const particleCount = 200; // Increased number of particles
-    const connectionDistance = 120;
+    const particleCount = 100; // Reduced for performance
+    const connectionDistance = 100;
     const mouseRadius = 150;
     
-    // Adjust mouse position to account for scrolling
+    // Mouse position tracking (relative to document)
     let mouseX = 0;
     let mouseY = 0;
     
-    // Track mouse position with scroll offset
-    window.addEventListener('mousemove', function(e) {
-        mouseX = e.clientX + window.scrollX;
-        mouseY = e.clientY + window.scrollY;
+    // Track mouse position with correct coordinates
+    document.addEventListener('mousemove', function(e) {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
     });
     
     // Resize handler
     window.addEventListener('resize', function() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+        console.log('Canvas resized:', canvas.width, canvas.height);
     });
     
-    // Particle class with more dust-like properties
+    // Particle class with simplified properties for better performance
     class Particle {
         constructor() {
+            this.reset();
+        }
+        
+        reset() {
             this.x = Math.random() * canvas.width;
             this.y = Math.random() * canvas.height;
-            
-            // Varied velocities to create more natural movement
-            this.vx = (Math.random() - 0.5) * 0.7;
-            this.vy = (Math.random() - 0.5) * 0.7;
-            
-            // Varied sizes for more natural look
-            this.radius = Math.random() * 2.5 + 0.5;
-            
-            // Varied opacity for depth effect
+            this.size = Math.random() * 3 + 1;
+            this.vx = (Math.random() - 0.5) * 0.5;
+            this.vy = (Math.random() - 0.5) * 0.5;
             this.opacity = Math.random() * 0.5 + 0.3;
             
-            // Varied colors for a more interesting look
-            const colors = ['#64ffda', '#9effeb', '#50e5c3', '#40d1b0'];
-            this.color = colors[Math.floor(Math.random() * colors.length)];
-            this.originalColor = this.color;
-            this.highlightColor = '#ffffff';
-            
-            // Random "float" effect
-            this.floatAmplitude = Math.random() * 1.5;
-            this.floatSpeed = Math.random() * 0.01;
-            this.floatOffset = Math.random() * Math.PI * 2;
+            // Simple color scheme
+            this.color = '#64ffda';
         }
         
         draw() {
             ctx.beginPath();
-            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
             ctx.fillStyle = this.color;
             ctx.globalAlpha = this.opacity;
             ctx.fill();
             ctx.globalAlpha = 1;
         }
         
-        update(time) {
-            // Add "floating" sine wave motion for dust-like effect
-            this.y += Math.sin(time * this.floatSpeed + this.floatOffset) * this.floatAmplitude * 0.05;
+        update() {
+            // Basic movement
+            this.x += this.vx;
+            this.y += this.vy;
             
-            // Check mouse proximity for interactive effect
+            // Mouse interaction
             const dx = mouseX - this.x;
             const dy = mouseY - this.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
             if (distance < mouseRadius) {
-                // Particle is near the mouse cursor
-                this.color = this.highlightColor;
-                this.opacity = 0.8;
-                
-                // Push the particle gently away from the cursor
                 const angle = Math.atan2(dy, dx);
                 const force = (mouseRadius - distance) / mouseRadius;
-                this.vx -= Math.cos(angle) * force * 0.3;
-                this.vy -= Math.sin(angle) * force * 0.3;
-            } else {
-                this.color = this.originalColor;
-                this.opacity = Math.random() * 0.5 + 0.3; // Slightly randomize opacity for a flicker effect
+                this.vx -= Math.cos(angle) * force * 0.1;
+                this.vy -= Math.sin(angle) * force * 0.1;
+                this.opacity = 0.8;
             }
             
-            // Update position
-            this.x += this.vx;
-            this.y += this.vy;
+            // Boundary checks
+            if (this.x < 0 || this.x > canvas.width || 
+                this.y < 0 || this.y > canvas.height) {
+                this.reset();
+            }
             
-            // Boundary check with wrap-around for a more continuous effect
-            if (this.x < -50) this.x = canvas.width + 50;
-            if (this.x > canvas.width + 50) this.x = -50;
-            if (this.y < -50) this.y = canvas.height + 50;
-            if (this.y > canvas.height + 50) this.y = -50;
+            // Add slight randomness
+            this.vx += (Math.random() - 0.5) * 0.01;
+            this.vy += (Math.random() - 0.5) * 0.01;
             
-            // Dampen velocity (friction)
+            // Dampen speed
             this.vx *= 0.99;
             this.vy *= 0.99;
-            
-            // Add slight randomness to movement for dust-like behavior
-            this.vx += (Math.random() - 0.5) * 0.03;
-            this.vy += (Math.random() - 0.5) * 0.03;
         }
     }
     
     // Create particles
+    console.log('Creating particles...');
     for (let i = 0; i < particleCount; i++) {
         particles.push(new Particle());
     }
     
-    // Draw connections between nearby particles - more connections for "web" effect
+    // Draw connections between nearby particles
     function drawConnections() {
         for (let i = 0; i < particles.length; i++) {
             for (let j = i + 1; j < particles.length; j++) {
@@ -137,66 +138,35 @@ document.addEventListener('DOMContentLoaded', function() {
                     ctx.moveTo(particles[i].x, particles[i].y);
                     ctx.lineTo(particles[j].x, particles[j].y);
                     
-                    // Opacity based on distance - more visible
+                    // Opacity based on distance
                     const opacity = 1 - (distance / connectionDistance);
                     ctx.strokeStyle = `rgba(100, 255, 218, ${opacity * 0.2})`;
-                    ctx.lineWidth = 0.3;
+                    ctx.lineWidth = 0.5;
                     ctx.stroke();
                 }
             }
         }
     }
     
-    // Add occasional "dust puff" effect
-    function addDustPuff() {
-        // Random position
-        const puffX = Math.random() * canvas.width;
-        const puffY = Math.random() * canvas.height;
-        
-        // Add several particles from this point
-        for (let i = 0; i < 5; i++) {
-            const p = new Particle();
-            p.x = puffX + (Math.random() - 0.5) * 20;
-            p.y = puffY + (Math.random() - 0.5) * 20;
-            
-            // Explode outward
-            const angle = Math.random() * Math.PI * 2;
-            const speed = Math.random() * 2;
-            p.vx = Math.cos(angle) * speed;
-            p.vy = Math.sin(angle) * speed;
-            
-            // Replace an existing particle
-            const replaceIndex = Math.floor(Math.random() * particles.length);
-            particles[replaceIndex] = p;
-        }
-    }
-    
-    // Occasionally add dust puffs
-    setInterval(addDustPuff, 3000);
-    
-    // Animation loop with time parameter for floating effect
-    let time = 0;
+    // Animation loop
     function animate() {
-        time += 0.1;
+        // Clear the whole canvas with each frame
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // Draw connections first (under particles)
+        // Update and draw particles
+        for (let i = 0; i < particles.length; i++) {
+            particles[i].update();
+            particles[i].draw();
+        }
+        
+        // Draw connections
         drawConnections();
         
-        // Update and draw particles
-        particles.forEach(particle => {
-            particle.update(time);
-            particle.draw();
-        });
-
+        // Request next frame
         requestAnimationFrame(animate);
     }
     
-    // Ensure the canvas is appended to the DOM and visible
-    if (!particleContainer.contains(canvas)) {
-        particleContainer.appendChild(canvas);
-    }
-
     // Start animation
+    console.log('Starting animation loop...');
     animate();
 });

@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Add interactive mouse effect with improved tracking
+// Add interactive mouse effect with fixed position tracking
 document.addEventListener('mousemove', function(e) {
     let mouseEffect = document.getElementById('mouse-effect');
     if (!mouseEffect) {
@@ -61,12 +61,9 @@ document.addEventListener('mousemove', function(e) {
         document.body.appendChild(mouseEffect);
     }
     
-    // Use clientX/Y or pageX/Y depending on scroll position
-    const x = e.pageX;
-    const y = e.pageY;
-    
-    mouseEffect.style.left = `${x}px`;
-    mouseEffect.style.top = `${y}px`;
+    // Use clientX/Y for accurate cursor position
+    mouseEffect.style.left = `${e.clientX}px`;
+    mouseEffect.style.top = `${e.clientY}px`;
 });
 
 // Handle mouse leaving and entering the window
@@ -81,10 +78,8 @@ document.addEventListener('mouseenter', function(e) {
     const mouseEffect = document.getElementById('mouse-effect');
     if (mouseEffect) {
         mouseEffect.style.opacity = '1';
-        
-        // Update position immediately
-        mouseEffect.style.left = `${e.pageX}px`;
-        mouseEffect.style.top = `${e.pageY}px`;
+        mouseEffect.style.left = `${e.clientX}px`;
+        mouseEffect.style.top = `${e.clientY}px`;
     }
 });
 
