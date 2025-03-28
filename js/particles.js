@@ -19,8 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
     container.style.width = '100%';
     container.style.height = '100%';
     container.style.overflow = 'hidden';
-    // Fixed z-index to be above separator but below text/images
-    container.style.zIndex = '-5'; 
+    // Changed to be a positive z-index, but still below the text (which usually has higher z-index)
+    container.style.zIndex = '1'; 
     container.style.pointerEvents = 'none';
     
     // Multi-colored star palette (complementary colors based on teal)
@@ -73,8 +73,8 @@ document.addEventListener('DOMContentLoaded', function() {
     nebulaCanvas.style.height = '100%';
     nebulaCanvas.style.opacity = '0.3'; // Increased opacity for better visibility
     nebulaCanvas.style.filter = 'blur(40px)'; // Heavy blur for nebula-like effect
-    // Fixed z-index to be above separator but below text/images
-    nebulaCanvas.style.zIndex = '-4'; 
+    // Changed to be a positive z-index, but still below the text
+    nebulaCanvas.style.zIndex = '3'; 
     container.appendChild(nebulaCanvas);
     
     // Set canvas dimensions
@@ -150,8 +150,8 @@ document.addEventListener('DOMContentLoaded', function() {
     cloudCanvas.style.height = '100%';
     cloudCanvas.style.opacity = '1';
     cloudCanvas.style.filter = 'blur(70px)'; // Heavy blur for smoky clouds
-    // Fixed z-index to be above separator but below text/images
-    cloudCanvas.style.zIndex = '-4.5'; 
+    // Changed to be a positive z-index, but still below the text
+    cloudCanvas.style.zIndex = '2'; 
     container.appendChild(cloudCanvas);
     
     // Set cloud canvas dimensions
@@ -219,8 +219,8 @@ document.addEventListener('DOMContentLoaded', function() {
     dustLayerCanvas.style.width = '100%';
     dustLayerCanvas.style.height = '100%';
     dustLayerCanvas.style.opacity = '1';
-    // Fixed z-index to be above separator but below text/images
-    dustLayerCanvas.style.zIndex = '-5';
+    // Changed to be a positive z-index, but still below the text
+    dustLayerCanvas.style.zIndex = '1';
     container.appendChild(dustLayerCanvas);
     
     // Set dust canvas dimensions
@@ -302,8 +302,8 @@ document.addEventListener('DOMContentLoaded', function() {
         particle.style.top = `${posY}%`;
         particle.style.opacity = '0'; // Start invisible
         particle.style.transition = 'all 1s ease-in-out';
-        // Fixed z-index to be above separator but below text/images
-        particle.style.zIndex = '-5';
+        // Changed to be a positive z-index, but still below the text
+        particle.style.zIndex = '2';
         
         if (isStar) {
             // Pick a random color from the star color palette
@@ -381,8 +381,8 @@ document.addEventListener('DOMContentLoaded', function() {
         dust.style.borderRadius = '50%';
         dust.style.left = `${posX}%`;
         dust.style.top = `${posY}%`;
-        // Fixed z-index to be above separator but below text/images
-        dust.style.zIndex = '-5';
+        // Changed to be a positive z-index, but still below the text
+        dust.style.zIndex = '2';
         
         // Random dust color
         const dustColorIndex = Math.floor(Math.random() * dustColors.length);
@@ -455,7 +455,7 @@ document.addEventListener('DOMContentLoaded', function() {
         microDust.style.opacity = Math.random() * 0.1 + 0.02;
         
         // Updated z-index for proper layering
-        microDust.style.zIndex = -5;
+        microDust.style.zIndex = 1;
         
         // Very slow or static for background dust
         if (Math.random() < 0.3) {
@@ -488,7 +488,7 @@ document.addEventListener('DOMContentLoaded', function() {
         smoke.style.borderRadius = '50%';
         smoke.style.left = `${posX}%`;
         smoke.style.top = `${posY}%`;
-        smoke.style.zIndex = '-5';
+        smoke.style.zIndex = '1';
         
         // Very faint styling with higher blur
         const colorIndex = Math.floor(Math.random() * nebulaColors.length);
@@ -706,8 +706,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Apply styles
             floatingParticle.style.position = 'absolute';
-            // Fixed z-index to be above separator but below text/images
-            floatingParticle.style.zIndex = '-5';
+            // Changed to be a positive z-index, but still below the text
+            floatingParticle.style.zIndex = '2';
             
             if (isSpecial) {
                 // Special particles are slightly larger and colored (stars)
@@ -817,8 +817,8 @@ document.addEventListener('DOMContentLoaded', function() {
             dustParticle.style.borderRadius = '50%';
             dustParticle.style.left = `${streamOriginX + offsetX}%`;
             dustParticle.style.top = `${streamOriginY + offsetY}%`;
-            // Fixed z-index to be above separator but below text/images
-            dustParticle.style.zIndex = '-5';
+            // Changed to be a positive z-index, but still below the text
+            dustParticle.style.zIndex = '2';
             
             // Very faint styling
             dustParticle.style.backgroundColor = spaceDustColors[Math.floor(Math.random() * spaceDustColors.length)];
@@ -876,7 +876,8 @@ document.addEventListener('DOMContentLoaded', function() {
             particle.style.left = `${burstX}%`;
             particle.style.top = `${burstY}%`;
             particle.style.opacity = '0';
-            particle.style.zIndex = '-3'; // Higher than other particles but still below text
+            // Changed to be a positive z-index, higher than other particles but still below the text
+            particle.style.zIndex = '4'; 
             particle.style.transition = 'all 0.5s ease-out';
             
             // Add to container
