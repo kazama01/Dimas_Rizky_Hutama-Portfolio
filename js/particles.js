@@ -12,6 +12,18 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clear any existing content
     container.innerHTML = '';
     
+    // Configuration options for particle system - can be adjusted
+    const config = {
+        particleCount: 240,      // Number of stars
+        dustCloudCount: 150,     // Number of dust particles
+        floatingRate: 0.3,       // Rate of floating particles (0-1)
+        parallaxStrength: 3,     // Multiplier for parallax effect (1-10)
+        starBrightness: 0.5      // Brightness of stars (0-1)
+    };
+    
+    // Add controls to the page if needed
+    addParticleControls(config);
+    
     // Set container styles explicitly to ensure proper rendering
     container.style.position = 'absolute'; // Changed from 'fixed' to 'absolute' to scroll with page
     container.style.top = '0';
@@ -60,11 +72,9 @@ document.addEventListener('DOMContentLoaded', function() {
         'rgba(255, 200, 255, 0.06)'  // Pinkish dust
     ];
     
-    // Create static particle elements - increased count for more stars
-    const particleCount = 240; // Increased 3x from 80 for more stars
-    
-    // Create dust cloud particles
-    const dustCloudCount = 150; // Increased 3x from 50 for more dust particles
+    // Create static particle elements based on config
+    const particleCount = config.particleCount;
+    const dustCloudCount = config.dustCloudCount;
     
     // First create stars
     for (let i = 0; i < particleCount; i++) {
@@ -128,6 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
         particle.dataset.parallaxDepth = parallaxDepth;
         particle.dataset.isstar = isStar;
         particle.dataset.starlayer = isStar ? starLayer : -1;
+        particle.dataset.originalY = posY; // Store original Y position for parallax calculation
         
         if (isStar) {
             // Pick a random color from the star color palette
@@ -137,8 +148,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Add glow effect based on the star's color - simplified
             particle.style.boxShadow = `0 0 ${Math.random() * 5 + 2}px 1px ${starColors[colorIndex]}`;
             
-            // Brighter opacity for stars
-            particle.style.opacity = Math.random() * 0.5 + 0.5;
+            // Adjust brightness based on config
+            particle.style.opacity = (Math.random() * 0.5 + config.starBrightness).toString();
             
             // Add a simple pulse animation for stars
             particle.style.animation = `starPulse ${Math.random() * 5 + 3}s ease-in-out infinite`;
@@ -199,6 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Store parallax depth as a data attribute
         dust.dataset.parallaxDepth = parallaxDepth;
         dust.dataset.isdust = true;
+        dust.dataset.originalY = posY; // Store original Y position for parallax calculation
         
         // Random dust color
         const dustColorIndex = Math.floor(Math.random() * dustColors.length);
@@ -254,9 +266,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('Lightweight space particle system initialized');
     
-    // Create occasional floating particles - reduced frequency
+    // Create occasional floating particles - based on config rate
     setInterval(function() {
-        if (Math.random() < 0.3) { // Reduced chance for new particles
+        if (Math.random() < config.floatingRate) {
             const floatingParticle = document.createElement('div');
             
             // Random starting position (not just bottom)
@@ -277,6 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Store parallax depth as a data attribute
             floatingParticle.dataset.parallaxDepth = parallaxDepth;
             floatingParticle.dataset.isfloating = true;
+            floatingParticle.dataset.originalY = startY; // Store original Y position for parallax calculation
             
             if (isSpecial) {
                 // Special particles are slightly larger and colored (stars)
@@ -334,79 +347,281 @@ document.addEventListener('DOMContentLoaded', function() {
                 }, duration * 1000);
             }, 10);
         }
-    }, 400); // Reduced frequency
+    }, 400);
+    
+    // Force an initial parallax update to position all elements
+    setTimeout(updateParallax, 100);
     
     // Enhanced parallax effect on scroll with variable depth for particles
     let lastScrollY = window.scrollY;
     let ticking = false;
     
+    // Function to update parallax positions
+    function updateParallax() {
+        // Get all particles
+        const particles = container.querySelectorAll('div');
+        
+        // Current scroll position
+        const scrollY = window.scrollY;
+        
+        // Apply parallax movement to particles based on scroll position and their depth factor
+        particles.forEach(particle => {
+            // Get the particle's depth factor from data attribute (or use a default)
+            let depthFactor = parseFloat(particle.dataset.parallaxDepth || 0.1);
+            
+            // Apply different movement behaviors based on particle type
+            if (particle.dataset.isstar === "true") {
+                // Apply different movements based on star layer
+                const starLayer = parseInt(particle.dataset.starlayer || 0);
+                
+                if (starLayer === 0) {
+                    // Distant stars move very slowly
+                    depthFactor *= 0.8;
+                } else if (starLayer === 1) {
+                    // Mid-distance stars
+                    depthFactor *= 1.5;
+                } else {
+                    // Closer stars move most noticeably
+                    depthFactor *= 2.2;
+                }
+            } else if (particle.dataset.isdust === "true") {
+                // Dust moves faster - creates foreground effect
+                depthFactor *= 2.0;
+            } else if (particle.dataset.isfloating === "true") {
+                // Floating particles have more variable movement
+                depthFactor *= (Math.random() * 0.5 + 1.2);
+            }
+            
+            // Amplify the movement based on config strength
+            depthFactor *= config.parallaxStrength;
+            
+            // Get original position
+            const originalY = parseFloat(particle.dataset.originalY || 0);
+            
+            // Calculate parallax offset based on scroll position
+            const parallaxOffset = scrollY * depthFactor * 0.1;
+            
+            // Apply transform - using absolute positioning relative to original position
+            particle.style.transform = `translateY(${parallaxOffset}px)`;
+        });
+    }
+    
+    // Scroll event handler using requestAnimationFrame for performance
     window.addEventListener('scroll', function() {
         if (!ticking) {
             window.requestAnimationFrame(function() {
-                // Get all particles
-                const particles = container.querySelectorAll('div');
-                const scrollDiff = window.scrollY - lastScrollY;
-                
-                // Apply effect regardless of scroll amount for more consistent parallax
-                // Apply parallax movement to particles when scrolling based on their depth factor
-                particles.forEach(particle => {
-                    // Get the particle's depth factor from data attribute (or use a default)
-                    let depthFactor = parseFloat(particle.dataset.parallaxDepth || 0.1);
-                    
-                    // Apply different movement behaviors based on particle type
-                    if (particle.dataset.isstar === "true") {
-                        // Apply different movements based on star layer
-                        const starLayer = parseInt(particle.dataset.starlayer || 0);
-                        
-                        if (starLayer === 0) {
-                            // Distant stars move very slowly
-                            depthFactor *= 0.8;
-                        } else if (starLayer === 1) {
-                            // Mid-distance stars
-                            depthFactor *= 1.5;
-                        } else {
-                            // Closer stars move most noticeably
-                            depthFactor *= 2.2;
-                        }
-                    } else if (particle.dataset.isdust === "true") {
-                        // Dust moves faster - creates foreground effect
-                        depthFactor *= 2.0;
-                    } else if (particle.dataset.isfloating === "true") {
-                        // Floating particles have more variable movement
-                        depthFactor *= (Math.random() * 0.5 + 1.2);
-                    }
-                    
-                    // Amplify the movement for more visible effect
-                    depthFactor *= 1.5;
-                    
-                    const currentTransform = particle.style.transform || '';
-                    
-                    // Extract current translateY if it exists
-                    let currentY = 0;
-                    const match = currentTransform.match(/translateY\(([^)]+)px\)/);
-                    if (match) {
-                        currentY = parseFloat(match[1]);
-                    }
-                    
-                    // Update translateY with scroll effect and depth factor
-                    const newY = currentY - (scrollDiff * depthFactor);
-                    
-                    // Update transform, preserving other transform properties
-                    let newTransform = currentTransform.replace(/translateY\([^)]+px\)/, '');
-                    newTransform += ` translateY(${newY}px)`;
-                    
-                    // Apply the transform with no transition for immediate effect
-                    particle.style.transition = particle.style.transition.replace(/transform [^,]+,?/, '');
-                    particle.style.transform = newTransform;
-                });
-                
-                lastScrollY = window.scrollY;
+                updateParallax();
                 ticking = false;
             });
             
             ticking = true;
         }
     });
+    
+    // Create controls for adjusting particle count and parallax effect
+    function addParticleControls(config) {
+        // Create controls container
+        const controlsContainer = document.createElement('div');
+        controlsContainer.className = 'particle-controls';
+        controlsContainer.style.position = 'fixed';
+        controlsContainer.style.bottom = '20px';
+        controlsContainer.style.right = '20px';
+        controlsContainer.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+        controlsContainer.style.padding = '10px';
+        controlsContainer.style.borderRadius = '5px';
+        controlsContainer.style.zIndex = '1000';
+        controlsContainer.style.color = '#fff';
+        controlsContainer.style.fontSize = '12px';
+        controlsContainer.style.transition = 'opacity 0.3s';
+        controlsContainer.style.opacity = '0.3';
+        
+        // Show controls fully on hover
+        controlsContainer.addEventListener('mouseenter', () => {
+            controlsContainer.style.opacity = '1';
+        });
+        
+        controlsContainer.addEventListener('mouseleave', () => {
+            controlsContainer.style.opacity = '0.3';
+        });
+        
+        // Toggle button to show/hide the controls
+        const toggleButton = document.createElement('button');
+        toggleButton.textContent = 'Particle Controls';
+        toggleButton.style.backgroundColor = '#64ffda';
+        toggleButton.style.border = 'none';
+        toggleButton.style.padding = '5px 10px';
+        toggleButton.style.borderRadius = '3px';
+        toggleButton.style.cursor = 'pointer';
+        toggleButton.style.fontSize = '12px';
+        toggleButton.style.color = '#000';
+        toggleButton.style.width = '100%';
+        toggleButton.style.marginBottom = '10px';
+        
+        const controlsContent = document.createElement('div');
+        controlsContent.id = 'particle-controls-content';
+        controlsContent.style.display = 'none';
+        
+        toggleButton.addEventListener('click', () => {
+            if (controlsContent.style.display === 'none') {
+                controlsContent.style.display = 'block';
+                toggleButton.textContent = 'Hide Controls';
+            } else {
+                controlsContent.style.display = 'none';
+                toggleButton.textContent = 'Particle Controls';
+            }
+        });
+        
+        controlsContainer.appendChild(toggleButton);
+        
+        // Helper function to create sliders
+        function createSlider(label, min, max, value, step, onChange) {
+            const sliderContainer = document.createElement('div');
+            sliderContainer.style.marginBottom = '8px';
+            
+            const labelElement = document.createElement('label');
+            labelElement.textContent = label + ': ' + value;
+            labelElement.style.display = 'block';
+            labelElement.style.marginBottom = '3px';
+            
+            const slider = document.createElement('input');
+            slider.type = 'range';
+            slider.min = min;
+            slider.max = max;
+            slider.step = step;
+            slider.value = value;
+            slider.style.width = '100%';
+            
+            slider.addEventListener('input', () => {
+                labelElement.textContent = label + ': ' + slider.value;
+                onChange(parseFloat(slider.value));
+            });
+            
+            sliderContainer.appendChild(labelElement);
+            sliderContainer.appendChild(slider);
+            return sliderContainer;
+        }
+        
+        // Add sliders for different particle properties
+        const parallaxSlider = createSlider('Parallax Strength', 0, 10, config.parallaxStrength, 0.1, (value) => {
+            config.parallaxStrength = value;
+            updateParallax();
+        });
+        
+        const starCountSlider = createSlider('Star Count', 50, 500, config.particleCount, 10, (value) => {
+            // Store new value
+            const newCount = Math.floor(value);
+            const diff = newCount - config.particleCount;
+            
+            if (diff > 0) {
+                // Add more stars
+                for (let i = 0; i < diff; i++) {
+                    createParticle();
+                }
+            } else if (diff < 0) {
+                // Remove stars
+                const stars = Array.from(container.querySelectorAll('div')).filter(el => el.dataset.isstar === "true");
+                for (let i = 0; i < Math.min(Math.abs(diff), stars.length); i++) {
+                    if (stars[i]) stars[i].remove();
+                }
+            }
+            
+            config.particleCount = newCount;
+        });
+        
+        const dustCountSlider = createSlider('Dust Count', 0, 300, config.dustCloudCount, 10, (value) => {
+            // Store new value
+            const newCount = Math.floor(value);
+            const diff = newCount - config.dustCloudCount;
+            
+            if (diff > 0) {
+                // Add more dust
+                for (let i = 0; i < diff; i++) {
+                    createDustParticle();
+                }
+            } else if (diff < 0) {
+                // Remove dust
+                const dusts = Array.from(container.querySelectorAll('div')).filter(el => el.dataset.isdust === "true");
+                for (let i = 0; i < Math.min(Math.abs(diff), dusts.length); i++) {
+                    if (dusts[i]) dusts[i].remove();
+                }
+            }
+            
+            config.dustCloudCount = newCount;
+        });
+        
+        const floatingRateSlider = createSlider('Floating Rate', 0, 1, config.floatingRate, 0.05, (value) => {
+            config.floatingRate = value;
+        });
+        
+        const brightnessSlider = createSlider('Star Brightness', 0, 1, config.starBrightness, 0.05, (value) => {
+            config.starBrightness = value;
+            
+            // Update brightness of existing stars
+            const stars = Array.from(container.querySelectorAll('div')).filter(el => el.dataset.isstar === "true");
+            stars.forEach(star => {
+                star.style.opacity = (Math.random() * 0.5 + value).toString();
+            });
+        });
+        
+        // Add reset button
+        const resetButton = document.createElement('button');
+        resetButton.textContent = 'Reset to Defaults';
+        resetButton.style.backgroundColor = '#ff6464';
+        resetButton.style.border = 'none';
+        resetButton.style.padding = '5px 10px';
+        resetButton.style.borderRadius = '3px';
+        resetButton.style.cursor = 'pointer';
+        resetButton.style.fontSize = '12px';
+        resetButton.style.color = '#fff';
+        resetButton.style.width = '100%';
+        resetButton.style.marginTop = '10px';
+        
+        resetButton.addEventListener('click', () => {
+            // Reset to default values
+            config.particleCount = 240;
+            config.dustCloudCount = 150;
+            config.floatingRate = 0.3;
+            config.parallaxStrength = 3;
+            config.starBrightness = 0.5;
+            
+            // Refresh UI
+            container.innerHTML = '';
+            
+            // Recreate particles
+            for (let i = 0; i < config.particleCount; i++) {
+                createParticle();
+            }
+            
+            for (let i = 0; i < config.dustCloudCount; i++) {
+                createDustParticle();
+            }
+            
+            // Update controls
+            controlsContent.innerHTML = '';
+            controlsContent.appendChild(parallaxSlider);
+            controlsContent.appendChild(starCountSlider);
+            controlsContent.appendChild(dustCountSlider);
+            controlsContent.appendChild(floatingRateSlider);
+            controlsContent.appendChild(brightnessSlider);
+            controlsContent.appendChild(resetButton);
+            
+            // Update parallax
+            updateParallax();
+        });
+        
+        // Add controls to the container
+        controlsContent.appendChild(parallaxSlider);
+        controlsContent.appendChild(starCountSlider);
+        controlsContent.appendChild(dustCountSlider);
+        controlsContent.appendChild(floatingRateSlider);
+        controlsContent.appendChild(brightnessSlider);
+        controlsContent.appendChild(resetButton);
+        
+        controlsContainer.appendChild(controlsContent);
+        
+        // Add controls to the body
+        document.body.appendChild(controlsContainer);
+    }
     
     // Recalculate container height when page content changes
     // This helps ensure particles cover the entire page even as content loads
