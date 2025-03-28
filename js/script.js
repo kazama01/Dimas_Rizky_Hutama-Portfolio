@@ -143,7 +143,9 @@ document.addEventListener('scroll', function() {
         const rect = section.getBoundingClientRect();
         if (rect.top < window.innerHeight && rect.bottom > 0) {
             section.classList.add('visible');
+            section.classList.add('enhanced'); // Add enhanced effect when section is in viewport
         } else {
+            section.classList.remove('enhanced');
             section.classList.remove('visible');
         }
     });
