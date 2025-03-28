@@ -60,11 +60,11 @@ document.addEventListener('DOMContentLoaded', function() {
         'rgba(255, 200, 255, 0.06)'  // Pinkish dust
     ];
     
-    // Create static particle elements - reduced count for better performance
-    const particleCount = 80; // Reduced count for better performance
+    // Create static particle elements - increased count for more stars
+    const particleCount = 240; // Increased 3x from 80 for more stars
     
     // Create dust cloud particles
-    const dustCloudCount = 50; // Reduced for better performance
+    const dustCloudCount = 150; // Increased 3x from 50 for more dust particles
     
     // First create stars
     for (let i = 0; i < particleCount; i++) {
@@ -257,8 +257,8 @@ document.addEventListener('DOMContentLoaded', function() {
             floatingParticle.style.left = `${startX}%`;
             floatingParticle.style.top = `${startY}%`;
             
-            // Reduced animation duration for better performance
-            const duration = isSpecial ? Math.random() * 15 + 10 : Math.random() * 20 + 15;
+            // Increased animation duration to slow down the particles by 3x
+            const duration = isSpecial ? Math.random() * 45 + 30 : Math.random() * 60 + 45;
             
             // Different movement directions based on starting position
             let endX, endY;
