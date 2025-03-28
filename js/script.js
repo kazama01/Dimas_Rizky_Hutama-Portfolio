@@ -8,6 +8,9 @@ let uniformBuffer, bindGroup, pipeline;
 let fallbackCursorActive = false;
 let cursorEffect;
 
+// Set this to false to disable the cursor effect
+const enableCursorEffect = false;
+
 const shaderCode = `
 struct Uniforms {
     mousePos: vec2f,
@@ -42,6 +45,8 @@ let mouseY = 0;
 
 // Create a fallback cursor effect using CSS/HTML
 function createFallbackCursorEffect() {
+    if (!enableCursorEffect) return; // Early return if effect is disabled
+    
     console.log('Creating fallback cursor effect');
     
     // Create a div for the cursor effect
@@ -259,33 +264,37 @@ function render() {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('DOM content loaded');
     
-    // Always create the fallback cursor first
-    createFallbackCursorEffect();
+    // Only create the cursor effect if it's enabled
+    if (enableCursorEffect) {
+        createFallbackCursorEffect();
+    }
     
     try {
-        // Try to initialize WebGPU
-        const webGPUInitialized = await initWebGPU();
-        
-        if (webGPUInitialized) {
-            console.log('WebGPU initialized successfully');
-            // Update canvas size when window resizes
-            function resizeCanvas() {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
+        // Only try to initialize WebGPU if cursor effect is enabled
+        if (enableCursorEffect) {
+            const webGPUInitialized = await initWebGPU();
+            
+            if (webGPUInitialized) {
+                console.log('WebGPU initialized successfully');
+                // Update canvas size when window resizes
+                function resizeCanvas() {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                }
+                window.addEventListener('resize', resizeCanvas);
+                resizeCanvas();
+    
+                // Track mouse position for WebGPU
+                document.addEventListener('mousemove', (e) => {
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                });
             }
-            window.addEventListener('resize', resizeCanvas);
-            resizeCanvas();
-
-            // Track mouse position for WebGPU
-            document.addEventListener('mousemove', (e) => {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
-            });
         }
     } catch (error) {
         console.error('Error during initialization:', error);
-        // Ensure fallback is active
-        if (!fallbackCursorActive) {
+        // Ensure fallback is active only if cursor effect is enabled
+        if (!fallbackCursorActive && enableCursorEffect) {
             createFallbackCursorEffect();
         }
     }
