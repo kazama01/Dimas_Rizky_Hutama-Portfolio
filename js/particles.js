@@ -91,6 +91,10 @@ document.addEventListener('DOMContentLoaded', function() {
         // Set dynamic lifespan for particles
         const lifespan = Math.random() * 8000 + 5000; // 5-13 seconds lifespan
         
+        // Set parallax depth factor based on size - larger particles move slower
+        // Store this as a data attribute for scroll handling
+        const parallaxDepth = isStar ? 0.05 + (size / 10) : 0.2 + (1 / size) * 0.1;
+        
         // Apply styles
         particle.style.position = 'absolute'; // Changed from fixed to absolute to scroll with page
         particle.style.width = `${size}px`;
@@ -101,6 +105,10 @@ document.addEventListener('DOMContentLoaded', function() {
         particle.style.opacity = '0'; // Start invisible
         particle.style.transition = 'all 1s ease-in-out';
         particle.style.zIndex = '2';
+        
+        // Store parallax depth as a data attribute
+        particle.dataset.parallaxDepth = parallaxDepth;
+        particle.dataset.isstar = isStar;
         
         if (isStar) {
             // Pick a random color from the star color palette
@@ -157,6 +165,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const posX = Math.random() * 120 - 10; // Allow slight overflow for more natural feel
         const posY = Math.random() * 120 - 10;
         
+        // Set parallax depth factor for dust - smaller particles move faster
+        const parallaxDepth = 0.3 + (1 / size) * 0.15;
+        
         // Styling dust
         dust.style.position = 'absolute'; // Changed from fixed to absolute to scroll with page
         dust.style.width = `${size}px`;
@@ -165,6 +176,10 @@ document.addEventListener('DOMContentLoaded', function() {
         dust.style.left = `${posX}%`;
         dust.style.top = `${posY}%`;
         dust.style.zIndex = '2';
+        
+        // Store parallax depth as a data attribute
+        dust.dataset.parallaxDepth = parallaxDepth;
+        dust.dataset.isdust = true;
         
         // Random dust color
         const dustColorIndex = Math.floor(Math.random() * dustColors.length);
@@ -232,9 +247,17 @@ document.addEventListener('DOMContentLoaded', function() {
             // Determine particle type - only two types now for simplicity
             const isSpecial = Math.random() < 0.2;
             
+            // Set size and corresponding parallax depth factor
+            const size = isSpecial ? Math.random() * 4 + 2 : Math.random() * 1.5 + 0.5;
+            const parallaxDepth = isSpecial ? 0.05 + (size / 10) : 0.2 + (1 / size) * 0.1;
+            
             // Apply styles
-            floatingParticle.style.position = 'absolute'; // Changed from fixed to absolute to scroll with page
+            floatingParticle.style.position = 'absolute';
             floatingParticle.style.zIndex = '2';
+            
+            // Store parallax depth as a data attribute
+            floatingParticle.dataset.parallaxDepth = parallaxDepth;
+            floatingParticle.dataset.isfloating = true;
             
             if (isSpecial) {
                 // Special particles are slightly larger and colored (stars)
@@ -294,7 +317,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }, 400); // Reduced frequency
     
-    // Update particles on scroll for parallax effect
+    // Enhanced parallax effect on scroll with variable depth for particles
     let lastScrollY = window.scrollY;
     window.addEventListener('scroll', function() {
         // Get all particles
@@ -302,26 +325,42 @@ document.addEventListener('DOMContentLoaded', function() {
         const scrollDiff = window.scrollY - lastScrollY;
         
         // Only apply effect if scroll amount is significant
-        if (Math.abs(scrollDiff) > 10) {
-            // Apply subtle movement to particles when scrolling for parallax effect
+        if (Math.abs(scrollDiff) > 5) {
+            // Apply parallax movement to particles when scrolling based on their depth factor
             particles.forEach(particle => {
-                const randomFactor = Math.random() * 0.3 + 0.7; // Between 0.7 and 1.0
+                // Get the particle's depth factor from data attribute (or use a default)
+                let depthFactor = parseFloat(particle.dataset.parallaxDepth || 0.1);
+                
+                // Apply different movement behaviors based on particle type
+                if (particle.dataset.isstar === "true") {
+                    // Stars move slower - creates distant background effect
+                    depthFactor *= 0.7;
+                } else if (particle.dataset.isdust === "true") {
+                    // Dust moves faster - creates foreground effect
+                    depthFactor *= 1.5;
+                } else if (particle.dataset.isfloating === "true") {
+                    // Floating particles have more variable movement
+                    depthFactor *= (Math.random() * 0.5 + 0.8);
+                }
+                
                 const currentTransform = particle.style.transform || '';
                 
                 // Extract current translateY if it exists
                 let currentY = 0;
-                const match = currentTransform.match(/translateY\(([^)]+)\)/);
+                const match = currentTransform.match(/translateY\(([^)]+)px\)/);
                 if (match) {
                     currentY = parseFloat(match[1]);
                 }
                 
-                // Update translateY with scroll effect
-                const newY = currentY - (scrollDiff * randomFactor * 0.05);
+                // Update translateY with scroll effect and depth factor
+                const newY = currentY - (scrollDiff * depthFactor);
                 
                 // Update transform, preserving other transform properties
-                const newTransform = currentTransform.replace(/translateY\([^)]+\)/, '') + 
-                    `translateY(${newY}px)`;
+                let newTransform = currentTransform.replace(/translateY\([^)]+px\)/, '');
+                newTransform += ` translateY(${newY}px)`;
                 
+                // Apply the transform with a slight transition for smoother movement
+                particle.style.transition = particle.style.transition || 'transform 0.2s ease-out';
                 particle.style.transform = newTransform;
             });
             
