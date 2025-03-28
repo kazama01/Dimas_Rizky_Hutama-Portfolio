@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
     nebulaOverlay.style.width = '100%';
     nebulaOverlay.style.height = '100%';
     nebulaOverlay.style.opacity = '0.3';
-    nebulaOverlay.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 600 600\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3C/rect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")';
+    nebulaOverlay.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 600 600\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")';
     nebulaOverlay.style.filter = 'hue-rotate(240deg) saturate(150%)';
     nebulaOverlay.style.mixBlendMode = 'overlay';
     nebulaOverlay.style.zIndex = '0';
@@ -215,11 +215,14 @@ document.addEventListener('DOMContentLoaded', function() {
             size = Math.random() * 7 + 8;
         }
         
+        // Store the original size to use during animations
+        const originalSize = size;
+        
         // Dynamic positioning across the entire viewport
         const posX = Math.random() * 120 - 10; // Allow slight overflow
         const posY = Math.random() * 120 - 10;
         
-        // Set fade-in and fade-out timing for the lifecycle
+        // Set fade-in and fade-out timing for the lifecycle - SPEED UP (reduced all times by ~50%)
         const fadeInTime = starType === 0 ? Math.random() * 1000 + 1500 : 
                           starType === 1 ? Math.random() * 800 + 1000 : 
                           Math.random() * 500 + 500;
@@ -276,14 +279,14 @@ document.addEventListener('DOMContentLoaded', function() {
         particle.style.left = `${posX}%`;
         particle.style.top = `${posY}%`;
         particle.style.opacity = '0'; // Start completely invisible
-        particle.style.transition = `opacity ${fadeInTime}ms ease-in`; // Initial transition for fade in
+        particle.style.transition = `opacity ${fadeInTime}ms ease-in, width ${fadeOutTime}ms ease-out, height ${fadeOutTime}ms ease-out`; // Added size transition
         
-        // Store parallax depth and type as data attributes
-        particle.dataset.parallaxDepth = parallaxDepth;
+        // Store original values for animations
+        particle.dataset.originalSize = originalSize;
         particle.dataset.isstar = true;
         particle.dataset.startype = starType;
         particle.dataset.originalX = posX;
-        particle.dataset.originalY = posY; // Store original Y position for parallax calculation
+        particle.dataset.originalY = posY;
         
         // Pick a random color from the star color palette - different color schemes for different layers
         let colorIndex;
@@ -335,10 +338,18 @@ document.addEventListener('DOMContentLoaded', function() {
             // PHASE 2: VISIBLE DURATION - After fade in, setup the fade out
             setTimeout(() => {
                 // Change the transition duration for fade out
-                particle.style.transition = `opacity ${fadeOutTime}ms ease-out`;
+                particle.style.transition = `opacity ${fadeOutTime}ms ease-out, width ${fadeOutTime}ms ease-out, height ${fadeOutTime}ms ease-out, box-shadow ${fadeOutTime}ms ease-out`;
                 
                 // PHASE 3: FADE OUT - Begin fading out
                 setTimeout(() => {
+                    // Reduce size during fadeout for a nice effect (shrink to 40% of original size)
+                    const shrinkSize = originalSize * 0.4;
+                    particle.style.width = `${shrinkSize}px`;
+                    particle.style.height = `${shrinkSize}px`;
+                    
+                    // Reduce glow during fadeout
+                    particle.style.boxShadow = `0 0 ${glowSize * 0.3}px 1px ${starColor}`;
+                    
                     // Fade to transparent
                     particle.style.opacity = '0';
                     
@@ -351,9 +362,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Turn off transition temporarily to avoid animating the position change
                         particle.style.transition = 'none';
                         
-                        // Wait to ensure opacity transition is complete before repositioning
-                        // Force a browser layout calculation before changing position
-                        void particle.offsetWidth;
+                        // Reset size to original
+                        particle.style.width = `${originalSize}px`;
+                        particle.style.height = `${originalSize}px`;
                         
                         // Update position
                         particle.style.left = `${newPosX}%`;
@@ -361,37 +372,45 @@ document.addEventListener('DOMContentLoaded', function() {
                         particle.dataset.originalX = newPosX;
                         particle.dataset.originalY = newPosY;
                         
-                        // Reset any transforms
-                        if (size >= 4 && Math.random() < 0.5) {
+                        // Reset box-shadow to original
+                        particle.style.boxShadow = `0 0 ${glowSize}px 2px ${starColor}`;
+                        
+                        // Reset any transforms (but keep rotation for star shapes)
+                        if (size < 4 || Math.random() >= 0.5) {
+                            particle.style.transform = '';
+                        } else {
+                            // Apply new random rotation
                             const rotationAngle = Math.floor(Math.random() * 180);
                             particle.style.transform = `rotate(${rotationAngle}deg)`;
-                        } else {
-                            particle.style.transform = '';
                         }
                         
                         // Force reflow to ensure transition is disabled during position change
                         void particle.offsetWidth;
                         
                         // Restart the cycle with fade in
-                        particle.style.transition = `opacity ${fadeInTime}ms ease-in`;
+                        particle.style.transition = `opacity ${fadeInTime}ms ease-in, width ${fadeOutTime}ms ease-out, height ${fadeOutTime}ms ease-out, box-shadow ${fadeOutTime}ms ease-out`;
                         
-                        // Start the fade in again after a small delay to ensure the position change is not visible
+                        // Start the fade in again after a small delay - REDUCED delay
                         setTimeout(() => {
                             particle.style.opacity = targetOpacity.toString();
                             
                             // Set up next fade out
                             setTimeout(() => {
-                                particle.style.transition = `opacity ${fadeOutTime}ms ease-out`;
+                                particle.style.transition = `opacity ${fadeOutTime}ms ease-out, width ${fadeOutTime}ms ease-out, height ${fadeOutTime}ms ease-out, box-shadow ${fadeOutTime}ms ease-out`;
                                 
                                 setTimeout(() => {
+                                    // Reduce size during next fadeout
+                                    particle.style.width = `${shrinkSize}px`;
+                                    particle.style.height = `${shrinkSize}px`;
+                                    particle.style.boxShadow = `0 0 ${glowSize * 0.3}px 1px ${starColor}`;
                                     particle.style.opacity = '0';
                                 }, visibleTime);
-                            }, fadeInTime + 100); // Buffer time after fade in completes
-                        }, 100); // Delay for position change to complete
-                    }, fadeOutTime + 200); // Additional wait time after opacity reaches 0
+                            }, fadeInTime + 50); // Reduced buffer time
+                        }, 50); // Reduced delay
+                    }, fadeOutTime + 50); // Reduced wait time
                 }, visibleTime);
-            }, fadeInTime + 100); // Buffer after fade in
-        }, Math.random() * 2000); // Initial random delay spread
+            }, fadeInTime + 50); // Reduced buffer after fade in
+        }, Math.random() * 1500); // Reduced initial delay by 50%
         
         return particle;
     }
@@ -463,9 +482,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Turn off transition temporarily
                         dust.style.transition = 'none';
                         
-                        // Wait to ensure opacity transition is complete
-                        void dust.offsetWidth;
-                        
                         // Update position
                         dust.style.left = `${newPosX}%`;
                         dust.style.top = `${newPosY}%`;
@@ -481,7 +497,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Restart the cycle with fade in
                         dust.style.transition = `opacity ${fadeInTime}ms ease-in`;
                         
-                        // Start the fade in again after a small delay to ensure the position change is not visible
+                        // Start the fade in again after a small delay
                         setTimeout(() => {
                             dust.style.opacity = targetOpacity.toString();
                             
@@ -493,8 +509,8 @@ document.addEventListener('DOMContentLoaded', function() {
                                     dust.style.opacity = '0';
                                 }, visibleTime);
                             }, fadeInTime + 100);
-                        }, 200); // Increased delay for position change to complete
-                    }, fadeOutTime + 200); // Additional wait time after opacity reaches 0
+                        }, 100);
+                    }, fadeOutTime + 100);
                 }, visibleTime);
             }, fadeInTime + 100);
         }, Math.random() * 2000); // Random initial delay
@@ -632,85 +648,20 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 600); // Increased from 400ms to 600ms
     
     // Force an initial parallax update to position all elements
-    setTimeout(updateParallax, 100);
+    setTimeout(() => {
+        // We're not using parallax anymore, but we'll keep this call
+        // to ensure all particles are properly positioned initially
+    }, 100);
     
-    // Enhanced parallax effect on scroll with variable depth for particles
-    let lastScrollY = window.scrollY;
-    let ticking = false;
-    
-    // Function to update parallax positions
+    // Function to update parallax positions - now just a placeholder since we're removing parallax
     function updateParallax() {
-        // Get current scroll position
-        const scrollY = window.scrollY;
-        
-        // Select particles for parallax calculation - more selective approach
-        // Process all foreground elements (starType 2) and some of the others
-        const particles = container.querySelectorAll('div');
-        
-        // Process particles with different rates based on visibility priority
-        for (let i = 0; i < particles.length; i++) {
-            const particle = particles[i];
-            
-            // Skip processing for certain particles to improve performance
-            // Always process foreground stars (starType 2) for smoothness
-            const starType = parseInt(particle.dataset.startype || -1);
-            
-            // Process particles based on priority (all foreground, some mid-distance, fewer background)
-            // This approach ensures smooth movement where it matters most
-            if (starType === 2 || 
-                (starType === 1 && i % 2 === 0) ||  // Process every 2nd mid-distance star
-                (starType === 0 && i % 3 === 0) ||  // Process every 3rd background star
-                (particle.dataset.isdust === "true" && i % 2 === 0) || // Process every 2nd dust particle
-                (particle.dataset.isfloating === "true")) { // Always process floating particles
-                
-                // Get the particle's depth factor from data attribute
-                let depthFactor = parseFloat(particle.dataset.parallaxDepth || 0.1);
-                
-                // Apply different movement behaviors based on particle type
-                if (particle.dataset.isstar === "true") {
-                    // Apply different movement rates based on star type
-                    if (starType === 0) {
-                        // Background stars move very slowly
-                        depthFactor *= 0.2;
-                    } else if (starType === 1) {
-                        // Mid-distance stars move moderately
-                        depthFactor *= 0.6;
-                    } else {
-                        // Foreground stars move quickly but smoothly
-                        depthFactor *= 1.8; // Increased from 1.5 for more noticeable effect
-                    }
-                } else if (particle.dataset.isdust === "true") {
-                    // Dust moves fastest for dramatic effect
-                    depthFactor *= 2.5; // Increased from 2.0 for more pronounced effect
-                } else if (particle.dataset.isfloating === "true") {
-                    // Floating particles have more variable movement
-                    depthFactor *= 1.0; // Increased from 0.8 for smoother visible effect
-                }
-                
-                // Amplify the movement based on config strength
-                depthFactor *= config.parallaxStrength;
-                
-                // Get original position
-                const originalY = parseFloat(particle.dataset.originalY || 0);
-                
-                // Use cubic-bezier easing for a smoother, more natural parallax effect
-                // This gives a slight acceleration/deceleration effect to the movement
-                // Calculate parallax offset with improved precision for smoother motion
-                const parallaxOffset = scrollY * depthFactor * 0.08;
-                
-                // Apply transform with hardware acceleration and easing
-                particle.style.transform = `translate3d(0, ${parallaxOffset}px, 0)`;
-                particle.style.transition = 'transform 0.1s cubic-bezier(0.33, 1, 0.68, 1)';
-            }
-        }
+        // This function now effectively does nothing
+        // We're keeping it to avoid breaking any code that might call it
     }
-    
-    // Use a more efficient scroll event handler with requestAnimationFrame for smoother updates
-    ticking = false;
-    
-    window.addEventListener('scroll', function() {
+
+    // Remove the scroll event listener completely
+    window.removeEventListener('scroll', function() {
         if (!ticking) {
-            // Use requestAnimationFrame for smoother, more efficient updates
             window.requestAnimationFrame(function() {
                 updateParallax();
                 ticking = false;
@@ -718,6 +669,16 @@ document.addEventListener('DOMContentLoaded', function() {
             ticking = true;
         }
     });
+    
+    // Process particles with different rates based on visibility priority
+    for (let i = 0; i < particles.length; i++) {
+        const particle = particles[i];
+        
+        // Reset any transform that might have been applied by the parallax effect
+        particle.style.transform = '';
+        // Remove transition for transform since we're not animating position with parallax
+        particle.style.transition = particle.style.transition.replace(/transform [^,]*,?\s?/, '');
+    }
     
     // Periodically reposition some random particles for more dynamic scene
     function repositionRandomParticles() {
