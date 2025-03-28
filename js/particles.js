@@ -14,10 +14,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Configuration options for particle system - can be adjusted
     const config = {
-        particleCount: 240,      // Number of stars
-        dustCloudCount: 150,     // Number of dust particles
+        particleCount: 400,      // Number of stars
+        dustCloudCount: 300,     // Number of dust particles
         floatingRate: 0.3,       // Rate of floating particles (0-1)
-        parallaxStrength: 3,     // Multiplier for parallax effect (1-10)
+        parallaxStrength: 8,     // Multiplier for parallax effect (1-10)
         starBrightness: 0.5      // Brightness of stars (0-1)
     };
     
