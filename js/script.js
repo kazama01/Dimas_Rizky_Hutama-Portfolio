@@ -10,6 +10,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fetch GitHub repositories
     fetchGitHubRepos(githubUsername);
 
+    // Initialize scroll progress indicator
+    initScrollProgressIndicator();
+    
+    // Initialize 3D tilt effect
+    init3DTiltEffect();
+
     // Form submission handler - remove the alert for Formspree forms
     const contactForm = document.getElementById('contact-form');
     if (contactForm && !contactForm.getAttribute('action').includes('formspree')) {
@@ -141,7 +147,107 @@ document.addEventListener('scroll', function() {
             section.classList.remove('visible');
         }
     });
+    
+    // Update scroll progress indicator
+    updateScrollProgress();
 });
+
+// Function to initialize scroll progress indicator
+function initScrollProgressIndicator() {
+    // Create the scroll progress elements if they don't exist yet
+    if (!document.querySelector('.scroll-progress-container')) {
+        const container = document.createElement('div');
+        container.className = 'scroll-progress-container';
+        
+        const bar = document.createElement('div');
+        bar.className = 'scroll-progress-bar';
+        
+        container.appendChild(bar);
+        document.body.prepend(container);
+    }
+    
+    // Initial update
+    updateScrollProgress();
+}
+
+// Function to update scroll progress indicator
+function updateScrollProgress() {
+    const scrollProgress = document.querySelector('.scroll-progress-bar');
+    if (scrollProgress) {
+        const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrollPercent = (scrollTop / scrollHeight) * 100;
+        
+        scrollProgress.style.width = `${scrollPercent}%`;
+    }
+}
+
+// Function to initialize 3D tilt effect
+function init3DTiltEffect() {
+    // Add tilt effect to gallery items, skill categories and about image
+    const tiltElements = document.querySelectorAll('.gallery-item, .skill-category, .about-image, .contact-form');
+    
+    tiltElements.forEach(element => {
+        element.classList.add('tilt-element');
+        
+        // Add event listeners for mouse movement
+        element.addEventListener('mousemove', handleTiltMove);
+        element.addEventListener('mouseleave', handleTiltLeave);
+    });
+}
+
+// Function to handle mouse movement for tilt effect
+function handleTiltMove(e) {
+    const element = e.currentTarget;
+    const elementRect = element.getBoundingClientRect();
+    
+    // Calculate mouse position relative to the element
+    const x = e.clientX - elementRect.left;
+    const y = e.clientY - elementRect.top;
+    
+    // Calculate position as a percentage of the element's dimensions
+    const xPercent = (x / elementRect.width) * 100;
+    const yPercent = (y / elementRect.height) * 100;
+    
+    // Calculate the tilt - maximum tilt of 10 degrees
+    const maxTilt = 5;
+    const xTilt = (xPercent / 50 - 1) * maxTilt; // -maxTilt to +maxTilt
+    const yTilt = (yPercent / 50 - 1) * -maxTilt; // +maxTilt to -maxTilt (inverted)
+    
+    // Add a subtle "lift" effect
+    const scale = 1.02;
+    
+    // Apply transform
+    element.style.transform = `perspective(1000px) rotateX(${yTilt}deg) rotateY(${xTilt}deg) scale(${scale})`;
+    
+    // Add a subtle sheen/glow effect based on mouse position for some elements
+    if (element.classList.contains('gallery-item') || element.classList.contains('about-image')) {
+        // Calculate the light position
+        const shine = `radial-gradient(circle at ${xPercent}% ${yPercent}%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 80%)`;
+        
+        // Apply the shine effect
+        element.style.background = shine;
+        
+        // Ensure the original background content is visible
+        if (element.querySelector('img')) {
+            element.querySelector('img').style.position = 'relative';
+            element.querySelector('img').style.zIndex = '1';
+        }
+    }
+}
+
+// Function to handle mouse leave for tilt effect
+function handleTiltLeave(e) {
+    const element = e.currentTarget;
+    
+    // Reset transform and background
+    element.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+    
+    // If it's a gallery item with shine effect, reset it but keep any original background
+    if (element.classList.contains('gallery-item') || element.classList.contains('about-image')) {
+        element.style.background = '';
+    }
+}
 
 // Function to fetch GitHub repositories
 function fetchGitHubRepos(username) {

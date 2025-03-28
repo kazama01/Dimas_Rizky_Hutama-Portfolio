@@ -655,8 +655,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Function to update parallax positions - now just a placeholder since we're removing parallax
     function updateParallax() {
-        // This function now effectively does nothing
-        // We're keeping it to avoid breaking any code that might call it
+        // This function is empty as we've removed the parallax effect completely
     }
 
     // Remove the scroll event listener completely
@@ -682,8 +681,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Periodically reposition some random particles for more dynamic scene
     function repositionRandomParticles() {
-        // Removed the random repositioning, since particles now have a natural lifecycle
-        // that handles fading in, being visible, fading out, and repositioning
+        // This function is not used anymore since particles have their own lifecycle
     }
     
     // We don't need to periodically call repositionRandomParticles anymore
@@ -773,12 +771,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return sliderContainer;
         }
         
-        // Add sliders for different particle properties
-        const parallaxSlider = createSlider('Parallax Strength', 0, 10, config.parallaxStrength, 0.1, (value) => {
-            config.parallaxStrength = value;
-            updateParallax();
-        });
-        
+        // Add sliders for different particle properties (removing parallax slider)
         const starCountSlider = createSlider('Star Count', 50, 500, config.particleCount, 10, (value) => {
             // Store new value
             const newCount = Math.floor(value);
@@ -858,7 +851,6 @@ document.addEventListener('DOMContentLoaded', function() {
             config.particleCount = defaultConfig.particleCount;
             config.dustCloudCount = defaultConfig.dustCloudCount;
             config.floatingRate = defaultConfig.floatingRate;
-            config.parallaxStrength = defaultConfig.parallaxStrength;
             config.starBrightness = defaultConfig.starBrightness;
             config.particleMovement = defaultConfig.particleMovement;
             
@@ -867,6 +859,9 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Refresh UI
             container.innerHTML = '';
+            
+            // Add back space background
+            container.appendChild(spaceBackground);
             
             // Recreate particles
             for (let i = 0; i < config.particleCount; i++) {
@@ -879,16 +874,13 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Update controls
             controlsContent.innerHTML = '';
-            controlsContent.appendChild(parallaxSlider);
             controlsContent.appendChild(starCountSlider);
             controlsContent.appendChild(dustCountSlider);
             controlsContent.appendChild(floatingRateSlider);
             controlsContent.appendChild(brightnessSlider);
             controlsContent.appendChild(movementSlider);
             controlsContent.appendChild(resetButton);
-            
-            // Update parallax
-            updateParallax();
+            controlsContent.appendChild(clearCacheButton);
         });
         
         // Add clear cache button
@@ -927,8 +919,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 3000);
         });
         
-        // Add controls to the container
-        controlsContent.appendChild(parallaxSlider);
+        // Add controls to the container - exclude parallax slider
         controlsContent.appendChild(starCountSlider);
         controlsContent.appendChild(dustCountSlider);
         controlsContent.appendChild(floatingRateSlider);
