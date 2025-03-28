@@ -50,6 +50,54 @@ document.addEventListener('DOMContentLoaded', function() {
             window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}`, '_blank');
         });
     });
+
+    // Handle resume download button click
+    const resumeBtn = document.getElementById('resume-btn');
+    if (resumeBtn) {
+        resumeBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Path to the resume file - relative to the website root
+            const resumePath = 'Documents/DimasRizky-Resume.pdf';
+            
+            // Create an anchor element
+            const downloadLink = document.createElement('a');
+            downloadLink.href = resumePath;
+            downloadLink.download = 'DimasRizky-Resume.pdf'; // Set the download filename
+            downloadLink.target = '_blank'; // Open in new tab as fallback
+            
+            // Add a success message
+            const message = document.createElement('div');
+            message.style.position = 'fixed';
+            message.style.top = '20px';
+            message.style.left = '50%';
+            message.style.transform = 'translateX(-50%)';
+            message.style.backgroundColor = 'rgba(100, 255, 218, 0.9)';
+            message.style.color = '#121212';
+            message.style.padding = '10px 20px';
+            message.style.borderRadius = '5px';
+            message.style.zIndex = '9999';
+            message.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+            message.textContent = 'Downloading resume...';
+            document.body.appendChild(message);
+            
+            // Append to the body (required for Firefox)
+            document.body.appendChild(downloadLink);
+            
+            // Programmatically click the link to trigger download
+            downloadLink.click();
+            
+            // Clean up
+            document.body.removeChild(downloadLink);
+            
+            // Remove message after a delay
+            setTimeout(() => {
+                message.style.opacity = '0';
+                message.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => document.body.removeChild(message), 500);
+            }, 2000);
+        });
+    }
 });
 
 // Add interactive mouse effect with fixed position tracking
