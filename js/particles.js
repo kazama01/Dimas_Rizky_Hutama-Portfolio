@@ -18,7 +18,8 @@ document.addEventListener('DOMContentLoaded', function() {
         dustCloudCount: 300,     // Number of dust particles
         floatingRate: 0.3,       // Rate of floating particles (0-1)
         parallaxStrength: 8,     // Multiplier for parallax effect (1-10)
-        starBrightness: 0.5      // Brightness of stars (0-1)
+        starBrightness: 0.5,     // Brightness of stars (0-1)
+        particleMovement: 0.4    // Movement rate of particles (0-1)
     };
     
     // Add controls to the page if needed
@@ -113,8 +114,10 @@ document.addEventListener('DOMContentLoaded', function() {
         const posX = Math.random() * 120 - 10; // Allow slight overflow
         const posY = Math.random() * 120 - 10;
         
-        // Set dynamic lifespan for particles
-        const lifespan = Math.random() * 8000 + 5000; // 5-13 seconds lifespan
+        // Set dynamic lifespan for particles - varying lifespans for more natural movement
+        const lifespan = starType === 0 ? Math.random() * 15000 + 20000 : // Background stars live longer
+                         starType === 1 ? Math.random() * 10000 + 10000 : // Mid stars medium lifespan
+                         Math.random() * 8000 + 5000; // Foreground stars shorter lifespan
         
         // Set very different parallax depth factors based on star type
         let parallaxDepth;
@@ -149,6 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
         particle.dataset.parallaxDepth = parallaxDepth;
         particle.dataset.isstar = true;
         particle.dataset.startype = starType;
+        particle.dataset.originalX = posX;
         particle.dataset.originalY = posY; // Store original Y position for parallax calculation
         
         // Pick a random color from the star color palette - different color schemes for different layers
@@ -182,6 +186,39 @@ document.addEventListener('DOMContentLoaded', function() {
         
         particle.style.animation = `starPulse ${animationDuration}s ease-in-out infinite`;
         
+        // Add random drift movement - slight for background stars, more for foreground
+        const movementRangeX = starType === 0 ? 5 : starType === 1 ? 10 : 15;
+        const movementRangeY = starType === 0 ? 5 : starType === 1 ? 10 : 15;
+        const movementDuration = starType === 0 ? Math.random() * 60 + 60 : 
+                                starType === 1 ? Math.random() * 40 + 40 : 
+                                Math.random() * 30 + 20;
+        
+        // Randomize movement timing
+        const movementDelay = Math.random() * 5000;
+        
+        // Apply random slow drift movement
+        setTimeout(() => {
+            const moveX = (Math.random() * movementRangeX * 2) - movementRangeX;
+            const moveY = (Math.random() * movementRangeY * 2) - movementRangeY;
+            
+            // Smooth transition for movement
+            particle.style.transition = `opacity 1s ease-in-out, transform ${movementDuration}s ease-in-out`;
+            const currentTransform = particle.style.transform || '';
+            particle.style.transform = `${currentTransform} translate(${moveX}px, ${moveY}px)`;
+        }, movementDelay);
+        
+        // Star lifecycle - fade out and reposition after lifespan
+        setTimeout(() => {
+            // Fade out
+            particle.style.opacity = '0';
+            
+            // Remove and create new star in a different position
+            setTimeout(() => {
+                particle.remove();
+                createParticle(); // Create a replacement at a new random position
+            }, 1000);
+        }, lifespan);
+        
         container.appendChild(particle);
     }
     
@@ -211,6 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Store parallax depth as a data attribute
         dust.dataset.parallaxDepth = parallaxDepth;
         dust.dataset.isdust = true;
+        dust.dataset.originalX = posX;
         dust.dataset.originalY = posY; // Store original Y position for parallax calculation
         
         // Random dust color
@@ -221,8 +259,10 @@ document.addEventListener('DOMContentLoaded', function() {
         dust.style.opacity = '0';
         dust.style.transition = 'all 1.5s ease-in-out';
         
-        // Lifespan for dust particle
-        const lifespan = Math.random() * 8000 + 4000; // 4-12 seconds
+        // Randomize movement timing and direction
+        const movementDelay = Math.random() * 2000;
+        const movementDuration = Math.random() * 20 + 10;
+        const moveRange = 20 + (Math.random() * 20);
         
         // Add to container
         container.appendChild(dust);
@@ -231,13 +271,24 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
             dust.style.opacity = (Math.random() * 0.15 + 0.05).toString();
             
-            // Random movement during lifetime
+            // Random initial movement during lifetime
             const moveX = Math.random() * 15 - 7.5;
             const moveY = Math.random() * 15 - 7.5;
             dust.style.transform = `translate(${moveX}px, ${moveY}px)`;
+            
+            // After initial position, begin drifting
+            setTimeout(() => {
+                // Apply more significant movement to dust
+                const newMoveX = (Math.random() * moveRange * 2) - moveRange;
+                const newMoveY = (Math.random() * moveRange * 2) - moveRange;
+                
+                dust.style.transition = `all ${movementDuration}s ease-in-out`;
+                dust.style.transform = `translate(${newMoveX}px, ${newMoveY}px)`;
+            }, movementDelay);
         }, 100);
         
-        // Start fade out sequence before removal
+        // Start fade out sequence before removal with shorter lifespans for more dynamism
+        const lifespan = Math.random() * 6000 + 3000; // 3-9 seconds
         setTimeout(() => {
             dust.style.opacity = '0';
             
@@ -420,6 +471,101 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Periodically reposition some random particles for more dynamic scene
+    function repositionRandomParticles() {
+        if (config.particleMovement > 0) {
+            // Number of particles to reposition based on movement setting
+            const starCount = Math.floor(config.particleCount * config.particleMovement * 0.1);
+            const dustCount = Math.floor(config.dustCloudCount * config.particleMovement * 0.15);
+            
+            // Get all stars and choose random ones to move
+            const stars = Array.from(container.querySelectorAll('div')).filter(el => el.dataset.isstar === "true");
+            for (let i = 0; i < Math.min(starCount, stars.length); i++) {
+                const randomIndex = Math.floor(Math.random() * stars.length);
+                const star = stars[randomIndex];
+                
+                // Skip particles that are already transitioning
+                if (star.classList.contains('moving')) continue;
+                
+                // Mark as moving
+                star.classList.add('moving');
+                
+                // Prepare for transition by setting opacity to 0
+                star.style.opacity = '0';
+                
+                // After fading out, reposition
+                setTimeout(() => {
+                    // New random position
+                    const newPosX = Math.random() * 120 - 10;
+                    const newPosY = Math.random() * 120 - 10;
+                    
+                    // Update position
+                    star.style.left = `${newPosX}%`;
+                    star.style.top = `${newPosY}%`;
+                    star.dataset.originalX = newPosX;
+                    star.dataset.originalY = newPosY;
+                    
+                    // Reset transform (clear previous movements)
+                    star.style.transform = '';
+                    
+                    // Fade back in
+                    setTimeout(() => {
+                        const typeBrightness = parseFloat(star.dataset.brightness || 0.5);
+                        star.style.opacity = (Math.random() * 0.3 + config.starBrightness * typeBrightness).toString();
+                        star.classList.remove('moving');
+                    }, 300);
+                }, 500);
+                
+                // Remove this star from the array to prevent selecting it again
+                stars.splice(randomIndex, 1);
+            }
+            
+            // Reposition some dust particles too
+            const dusts = Array.from(container.querySelectorAll('div')).filter(el => el.dataset.isdust === "true");
+            for (let i = 0; i < Math.min(dustCount, dusts.length); i++) {
+                const randomIndex = Math.floor(Math.random() * dusts.length);
+                const dust = dusts[randomIndex];
+                
+                // Skip particles that are already transitioning
+                if (dust.classList.contains('moving')) continue;
+                
+                // Mark as moving
+                dust.classList.add('moving');
+                
+                // Prepare for transition
+                dust.style.opacity = '0';
+                
+                // After fading out, reposition
+                setTimeout(() => {
+                    // New random position
+                    const newPosX = Math.random() * 120 - 10;
+                    const newPosY = Math.random() * 120 - 10;
+                    
+                    // Update position
+                    dust.style.left = `${newPosX}%`;
+                    dust.style.top = `${newPosY}%`;
+                    dust.dataset.originalX = newPosX;
+                    dust.dataset.originalY = newPosY;
+                    
+                    // Reset transform
+                    dust.style.transform = '';
+                    
+                    // Fade back in
+                    setTimeout(() => {
+                        dust.style.opacity = (Math.random() * 0.15 + 0.05).toString();
+                        dust.classList.remove('moving');
+                    }, 300);
+                }, 500);
+                
+                // Remove this dust from the array
+                dusts.splice(randomIndex, 1);
+            }
+        }
+    }
+    
+    // Run the reposition function periodically
+    setInterval(repositionRandomParticles, 3000);
+    
     // Create controls for adjusting particle count and parallax effect
     function addParticleControls(config) {
         // Create controls container
@@ -565,6 +711,11 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
         
+        // Add movement rate slider
+        const movementSlider = createSlider('Movement Rate', 0, 1, config.particleMovement, 0.05, (value) => {
+            config.particleMovement = value;
+        });
+        
         // Add reset button
         const resetButton = document.createElement('button');
         resetButton.textContent = 'Reset to Defaults';
@@ -605,6 +756,7 @@ document.addEventListener('DOMContentLoaded', function() {
             controlsContent.appendChild(dustCountSlider);
             controlsContent.appendChild(floatingRateSlider);
             controlsContent.appendChild(brightnessSlider);
+            controlsContent.appendChild(movementSlider);
             controlsContent.appendChild(resetButton);
             
             // Update parallax
@@ -617,6 +769,7 @@ document.addEventListener('DOMContentLoaded', function() {
         controlsContent.appendChild(dustCountSlider);
         controlsContent.appendChild(floatingRateSlider);
         controlsContent.appendChild(brightnessSlider);
+        controlsContent.appendChild(movementSlider);
         controlsContent.appendChild(resetButton);
         
         controlsContainer.appendChild(controlsContent);
