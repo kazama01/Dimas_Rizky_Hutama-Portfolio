@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
     container.innerHTML = '';
     
     // Set container styles explicitly to ensure proper rendering
-    container.style.position = 'fixed';
+    container.style.position = 'absolute'; // Changed from 'fixed' to 'absolute' to scroll with page
     container.style.top = '0';
     container.style.left = '0';
     container.style.width = '100%';
@@ -21,6 +21,22 @@ document.addEventListener('DOMContentLoaded', function() {
     container.style.overflow = 'hidden';
     container.style.zIndex = '1'; 
     container.style.pointerEvents = 'none';
+    
+    // Extend the container to cover the full page height
+    function adjustContainerHeight() {
+        const docHeight = Math.max(
+            document.body.scrollHeight,
+            document.body.offsetHeight,
+            document.documentElement.clientHeight,
+            document.documentElement.scrollHeight,
+            document.documentElement.offsetHeight
+        );
+        container.style.height = docHeight + 'px';
+    }
+    
+    // Call initially and on window resize
+    adjustContainerHeight();
+    window.addEventListener('resize', adjustContainerHeight);
     
     // Multi-colored star palette (complementary colors based on teal)
     const starColors = [
@@ -76,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const lifespan = Math.random() * 8000 + 5000; // 5-13 seconds lifespan
         
         // Apply styles
-        particle.style.position = 'absolute';
+        particle.style.position = 'absolute'; // Changed from fixed to absolute to scroll with page
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
         particle.style.borderRadius = '50%';
@@ -142,7 +158,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const posY = Math.random() * 120 - 10;
         
         // Styling dust
-        dust.style.position = 'absolute';
+        dust.style.position = 'absolute'; // Changed from fixed to absolute to scroll with page
         dust.style.width = `${size}px`;
         dust.style.height = `${size}px`;
         dust.style.borderRadius = '50%';
@@ -217,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const isSpecial = Math.random() < 0.2;
             
             // Apply styles
-            floatingParticle.style.position = 'absolute';
+            floatingParticle.style.position = 'absolute'; // Changed from fixed to absolute to scroll with page
             floatingParticle.style.zIndex = '2';
             
             if (isSpecial) {
@@ -277,4 +293,47 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 10);
         }
     }, 400); // Reduced frequency
+    
+    // Update particles on scroll for parallax effect
+    let lastScrollY = window.scrollY;
+    window.addEventListener('scroll', function() {
+        // Get all particles
+        const particles = container.querySelectorAll('div');
+        const scrollDiff = window.scrollY - lastScrollY;
+        
+        // Only apply effect if scroll amount is significant
+        if (Math.abs(scrollDiff) > 10) {
+            // Apply subtle movement to particles when scrolling for parallax effect
+            particles.forEach(particle => {
+                const randomFactor = Math.random() * 0.3 + 0.7; // Between 0.7 and 1.0
+                const currentTransform = particle.style.transform || '';
+                
+                // Extract current translateY if it exists
+                let currentY = 0;
+                const match = currentTransform.match(/translateY\(([^)]+)\)/);
+                if (match) {
+                    currentY = parseFloat(match[1]);
+                }
+                
+                // Update translateY with scroll effect
+                const newY = currentY - (scrollDiff * randomFactor * 0.05);
+                
+                // Update transform, preserving other transform properties
+                const newTransform = currentTransform.replace(/translateY\([^)]+\)/, '') + 
+                    `translateY(${newY}px)`;
+                
+                particle.style.transform = newTransform;
+            });
+            
+            lastScrollY = window.scrollY;
+        }
+    });
+    
+    // Recalculate container height when page content changes
+    // This helps ensure particles cover the entire page even as content loads
+    const resizeObserver = new ResizeObserver(entries => {
+        adjustContainerHeight();
+    });
+    
+    resizeObserver.observe(document.body);
 });
