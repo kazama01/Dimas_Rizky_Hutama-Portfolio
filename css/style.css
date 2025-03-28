@@ -656,8 +656,8 @@ footer .social-links a:hover {
 
 /* Add transition effect for sections */
 section {
-    opacity: 1; /* All sections visible by default */
-    transform: translateY(0); /* No initial transform */
+    opacity: 0; /* Start hidden by default */
+    transform: translateY(30px); /* Initial transform up */
     transition: opacity 0.8s ease, transform 0.8s ease;
     position: relative;
     z-index: 1;
@@ -666,7 +666,19 @@ section {
     margin-bottom: 30px;
 }
 
-/* Instead, add an enhanced class for sections in viewport */
+/* Make hero section visible by default */
+section.hero {
+    opacity: 1; /* Hero is always visible */
+    transform: translateY(0); /* No transform for hero */
+}
+
+/* Section becomes visible when .visible class is added */
+section.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* Enhanced effect when section is in center of viewport */
 section.enhanced {
     transform: translateY(-5px);
     box-shadow: 0 10px 30px rgba(100, 255, 218, 0.1);

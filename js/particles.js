@@ -359,55 +359,19 @@ document.addEventListener('DOMContentLoaded', function() {
                         const newPosX = Math.random() * 120 - 10;
                         const newPosY = Math.random() * 120 - 10;
                         
-                        // Turn off transition temporarily to avoid animating the position change
+                        // Reset size, position, and opacity
                         particle.style.transition = 'none';
-                        
-                        // Reset size to original
                         particle.style.width = `${originalSize}px`;
                         particle.style.height = `${originalSize}px`;
-                        
-                        // Update position
                         particle.style.left = `${newPosX}%`;
                         particle.style.top = `${newPosY}%`;
-                        particle.dataset.originalX = newPosX;
-                        particle.dataset.originalY = newPosY;
+                        particle.style.opacity = '0';
                         
-                        // Reset box-shadow to original
-                        particle.style.boxShadow = `0 0 ${glowSize}px 2px ${starColor}`;
-                        
-                        // Reset any transforms (but keep rotation for star shapes)
-                        if (size < 4 || Math.random() >= 0.5) {
-                            particle.style.transform = '';
-                        } else {
-                            // Apply new random rotation
-                            const rotationAngle = Math.floor(Math.random() * 180);
-                            particle.style.transform = `rotate(${rotationAngle}deg)`;
-                        }
-                        
-                        // Force reflow to ensure transition is disabled during position change
+                        // Force reflow and restart the cycle
                         void particle.offsetWidth;
-                        
-                        // Restart the cycle with fade in
-                        particle.style.transition = `opacity ${fadeInTime}ms ease-in, width ${fadeOutTime}ms ease-out, height ${fadeOutTime}ms ease-out, box-shadow ${fadeOutTime}ms ease-out`;
-                        
-                        // Start the fade in again after a small delay - REDUCED delay
-                        setTimeout(() => {
-                            particle.style.opacity = targetOpacity.toString();
-                            
-                            // Set up next fade out
-                            setTimeout(() => {
-                                particle.style.transition = `opacity ${fadeOutTime}ms ease-out, width ${fadeOutTime}ms ease-out, height ${fadeOutTime}ms ease-out, box-shadow ${fadeOutTime}ms ease-out`;
-                                
-                                setTimeout(() => {
-                                    // Reduce size during next fadeout
-                                    particle.style.width = `${shrinkSize}px`;
-                                    particle.style.height = `${shrinkSize}px`;
-                                    particle.style.boxShadow = `0 0 ${glowSize * 0.3}px 1px ${starColor}`;
-                                    particle.style.opacity = '0';
-                                }, visibleTime);
-                            }, fadeInTime + 50); // Reduced buffer time
-                        }, 50); // Reduced delay
-                    }, fadeOutTime + 50); // Reduced wait time
+                        particle.style.transition = `opacity ${fadeInTime}ms ease-in, width ${fadeOutTime}ms ease-out, height ${fadeOutTime}ms ease-out`;
+                        particle.style.opacity = targetOpacity.toString();
+                    }, fadeOutTime + 50);
                 }, visibleTime);
             }, fadeInTime + 50); // Reduced buffer after fade in
         }, Math.random() * 1500); // Reduced initial delay by 50%

@@ -154,6 +154,33 @@ document.addEventListener('scroll', function() {
     updateScrollProgress();
 });
 
+// Add fade-in effects for elements as they scroll into view
+document.addEventListener('scroll', function() {
+    document.querySelectorAll('section').forEach(section => {
+        const rect = section.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+            section.classList.add('visible');
+            section.classList.add('enhanced');
+        } else {
+            section.classList.remove('enhanced');
+            section.classList.remove('visible');
+        }
+    });
+});
+
+// Enhance hover effects for buttons, links, and images
+document.querySelectorAll('button, a, img').forEach(element => {
+    element.addEventListener('mouseenter', () => {
+        element.style.transition = 'transform 0.3s, box-shadow 0.3s';
+        element.style.transform = 'scale(1.05)';
+        element.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+    });
+    element.addEventListener('mouseleave', () => {
+        element.style.transform = 'scale(1)';
+        element.style.boxShadow = 'none';
+    });
+});
+
 // Function to initialize scroll progress indicator
 function initScrollProgressIndicator() {
     // Create the scroll progress elements if they don't exist yet
