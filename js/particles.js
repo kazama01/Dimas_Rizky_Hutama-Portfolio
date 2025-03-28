@@ -50,6 +50,38 @@ document.addEventListener('DOMContentLoaded', function() {
         return { ...defaultConfig };
     }
     
+    // Create space background with gradient
+    const spaceBackground = document.createElement('div');
+    spaceBackground.className = 'space-background';
+    spaceBackground.style.position = 'absolute';
+    spaceBackground.style.top = '0';
+    spaceBackground.style.left = '0';
+    spaceBackground.style.width = '100%';
+    spaceBackground.style.height = '100%';
+    spaceBackground.style.zIndex = '0'; // Below stars
+    spaceBackground.style.pointerEvents = 'none';
+    
+    // Add deep space gradient background
+    spaceBackground.style.background = 'radial-gradient(ellipse at center, #1a0b2e 0%, #090422 50%, #020108 100%)';
+    
+    // Add nebula-like overlay for more visual interest
+    const nebulaOverlay = document.createElement('div');
+    nebulaOverlay.className = 'nebula-overlay';
+    nebulaOverlay.style.position = 'absolute';
+    nebulaOverlay.style.top = '0';
+    nebulaOverlay.style.left = '0';
+    nebulaOverlay.style.width = '100%';
+    nebulaOverlay.style.height = '100%';
+    nebulaOverlay.style.opacity = '0.3';
+    nebulaOverlay.style.backgroundImage = 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 600 600\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noiseFilter\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.65\' numOctaves=\'3\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noiseFilter)\'/%3E%3C/svg%3E")';
+    nebulaOverlay.style.filter = 'hue-rotate(240deg) saturate(150%)';
+    nebulaOverlay.style.mixBlendMode = 'overlay';
+    nebulaOverlay.style.zIndex = '0';
+
+    // Add to container first so stars appear above
+    container.appendChild(spaceBackground);
+    spaceBackground.appendChild(nebulaOverlay);
+    
     // Add controls to the page
     addParticleControls(config);
     
@@ -73,6 +105,9 @@ document.addEventListener('DOMContentLoaded', function() {
             document.documentElement.offsetHeight
         );
         container.style.height = docHeight + 'px';
+        
+        // Make sure space background covers the full height as well
+        spaceBackground.style.height = docHeight + 'px';
     }
     
     // Call initially and on window resize
@@ -150,6 +185,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 transform: scale(1.2) rotate(45deg);
             }
         }
+
+        /* Set the body background to match our space theme */
+        body {
+            background-color: #090422; /* Fallback color */
+        }
     `;
     document.head.appendChild(starStyles);
     
@@ -161,36 +201,36 @@ document.addEventListener('DOMContentLoaded', function() {
         // Determine star type (background, mid, or foreground) with equal distribution
         const starType = Math.floor(Math.random() * 3); // 0, 1, or 2
         
-        // Size based on star type - background stars are smaller, foreground stars are larger
+        // Size based on star type - increased sizes across all star types
         let size;
         
         if (starType === 0) {
-            // Background stars (small, move very slowly)
-            size = Math.random() * 4 + 2;
+            // Background stars (small, move very slowly) - increased from (2-6) to (3-7)
+            size = Math.random() * 4 + 3;
         } else if (starType === 1) {
-            // Mid-distance stars (medium, move moderately)
-            size = Math.random() * 5 + 3;
+            // Mid-distance stars (medium, move moderately) - increased from (3-8) to (5-10)
+            size = Math.random() * 5 + 5;
         } else {
-            // Foreground stars (larger, move faster)
-            size = Math.random() * 7 + 4;
+            // Foreground stars (larger, move faster) - increased from (4-11) to (8-15)
+            size = Math.random() * 7 + 8;
         }
         
         // Dynamic positioning across the entire viewport
         const posX = Math.random() * 120 - 10; // Allow slight overflow
         const posY = Math.random() * 120 - 10;
         
-        // Set fade-in and fade-out timing for the lifecycle
-        const fadeInTime = starType === 0 ? Math.random() * 2000 + 3000 : 
-                          starType === 1 ? Math.random() * 1500 + 2000 : 
-                          Math.random() * 1000 + 1000;
+        // Set fade-in and fade-out timing for the lifecycle - SPEED UP (reduced all times by ~50%)
+        const fadeInTime = starType === 0 ? Math.random() * 1000 + 1500 : 
+                          starType === 1 ? Math.random() * 800 + 1000 : 
+                          Math.random() * 500 + 500;
         
-        const visibleTime = starType === 0 ? Math.random() * 8000 + 15000 : 
-                           starType === 1 ? Math.random() * 6000 + 10000 : 
-                           Math.random() * 5000 + 5000;
+        const visibleTime = starType === 0 ? Math.random() * 4000 + 8000 : 
+                           starType === 1 ? Math.random() * 3000 + 5000 : 
+                           Math.random() * 2500 + 2500;
         
-        const fadeOutTime = starType === 0 ? Math.random() * 3000 + 2000 : 
-                           starType === 1 ? Math.random() * 2000 + 1500 : 
-                           Math.random() * 1000 + 1000;
+        const fadeOutTime = starType === 0 ? Math.random() * 1500 + 1000 : 
+                           starType === 1 ? Math.random() * 1000 + 800 : 
+                           Math.random() * 500 + 500;
         
         // Set very different parallax depth factors based on star type
         let parallaxDepth;
@@ -214,10 +254,11 @@ document.addEventListener('DOMContentLoaded', function() {
         particle.style.position = 'absolute';
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
+        particle.style.zIndex = starType + 3; // +3 to be above space background (z-index 0-2)
         
         // Apply star shape class instead of border-radius
         // Use different shape classes based on size to ensure visibility
-        if (size < 3) {
+        if (size < 4) {
             // Very small stars remain circular for better visibility
             particle.style.borderRadius = '50%';
         } else {
@@ -236,7 +277,6 @@ document.addEventListener('DOMContentLoaded', function() {
         particle.style.top = `${posY}%`;
         particle.style.opacity = '0'; // Start completely invisible
         particle.style.transition = `opacity ${fadeInTime}ms ease-in`; // Initial transition for fade in
-        particle.style.zIndex = starType + 1;
         
         // Store parallax depth and type as data attributes
         particle.dataset.parallaxDepth = parallaxDepth;
@@ -261,9 +301,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const starColor = starColors[colorIndex];
         particle.style.backgroundColor = starColor;
         
-        // Add glow effect based on the star's color and type
-        const glowSize = starType === 2 ? Math.random() * 8 + 4 : Math.random() * 4 + 1;
-        particle.style.boxShadow = `0 0 ${glowSize}px 1px ${starColor}`;
+        // Add glow effect based on the star's color and type - INCREASED glow size
+        const glowSize = starType === 2 ? Math.random() * 12 + 8 : Math.random() * 8 + 2;
+        particle.style.boxShadow = `0 0 ${glowSize}px 2px ${starColor}`;
         
         // Add animation for some stars (twinkle effect)
         if (Math.random() < 0.3) {
@@ -285,9 +325,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // PHASE 1: FADE IN - Start the fade-in after a small random delay
         setTimeout(() => {
-            // Calculate the target opacity based on type and config
+            // Calculate the target opacity based on type and config - INCREASED brightness
             const typeBrightness = parseFloat(particle.dataset.brightness || 0.5);
-            const targetOpacity = (Math.random() * 0.3 + config.starBrightness * typeBrightness);
+            const targetOpacity = Math.min(1.0, (Math.random() * 0.4 + config.starBrightness * typeBrightness + 0.2));
             
             // Fade in to the target opacity
             particle.style.opacity = targetOpacity.toString();
@@ -326,7 +366,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         // Restart the cycle with fade in
                         particle.style.transition = `opacity ${fadeInTime}ms ease-in`;
                         
-                        // Start the fade in again after a small delay
+                        // Start the fade in again after a small delay - REDUCED delay
                         setTimeout(() => {
                             particle.style.opacity = targetOpacity.toString();
                             
@@ -337,12 +377,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                 setTimeout(() => {
                                     particle.style.opacity = '0';
                                 }, visibleTime);
-                            }, fadeInTime + 100);
-                        }, 100);
-                    }, fadeOutTime + 100); // Wait for fade out to complete
+                            }, fadeInTime + 50); // Reduced buffer time
+                        }, 50); // Reduced delay
+                    }, fadeOutTime + 50); // Reduced wait time
                 }, visibleTime);
-            }, fadeInTime + 100); // Add small buffer after fade in
-        }, Math.random() * 3000); // Random initial delay so all stars don't appear at once
+            }, fadeInTime + 50); // Reduced buffer after fade in
+        }, Math.random() * 1500); // Reduced initial delay by 50%
         
         return particle;
     }
@@ -373,7 +413,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dust.classList.add('dust-particle');
         dust.style.left = `${posX}%`;
         dust.style.top = `${posY}%`;
-        dust.style.zIndex = '2';
+        dust.style.zIndex = '2'; // Above background, below stars
         dust.style.opacity = '0'; // Start completely invisible
         dust.style.transition = `opacity ${fadeInTime}ms ease-in`;
         
