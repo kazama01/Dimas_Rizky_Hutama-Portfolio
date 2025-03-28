@@ -694,7 +694,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Use a more efficient scroll event handler with requestAnimationFrame for smoother updates
-    let ticking = false;
+    ticking = false;
     
     window.addEventListener('scroll', function() {
         if (!ticking) {
