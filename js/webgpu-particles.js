@@ -12,20 +12,25 @@ document.addEventListener('DOMContentLoaded', async function() {
     // Clear any existing content
     container.innerHTML = '';
     
+    // Detect mobile devices for responsive sizing
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+    console.log('Is mobile device:', isMobile);
+    
     // Default configuration options for particle system
     const defaultConfig = {
-        particleCount: 4000,       // Updated to match the image
-        starBrightness: 5,         // Updated to match the image
-        minBrightness: 0.3,        // Updated to match the image
-        maxBrightness: 1,          // Updated to match the image
-        starSize: 0.25,               // Updated to match the image
-        minStarSize: 1,          // Updated to match the image
-        maxStarSize: 1,          // Updated to match the image
-        lifetime: 1,               // Updated to match the image
-        minLifetime: 0.1,          // Updated to match the image
-        maxLifetime: 0.5,          // Updated to match the image
-        colorShift: 0,             // Updated to match the image
-        zIndex: 0                  // Updated to match the image
+        particleCount: isMobile ? 2000 : 4000,  // Reduce particles on mobile
+        starBrightness: isMobile ? 3 : 5,       // Reduce brightness on mobile
+        minBrightness: 0.3,                     // Updated to match the image
+        maxBrightness: 1,                       // Updated to match the image
+        starSize: isMobile ? 0.5 : 1,           // Smaller stars on mobile
+        minStarSize: 0.25,                      // Changed from 1 to 0.25
+        maxStarSize: isMobile ? 0.6 : 1,        // Smaller max size on mobile
+        lifetime: 1,                            // Updated to match the image
+        minLifetime: 0.1,                       // Updated to match the image
+        maxLifetime: 0.5,                       // Updated to match the image
+        colorShift: 240,                        // Updated to match the image
+        zIndex: 0,                              // Updated to match the image
+        devicePixelRatio: isMobile ? Math.min(window.devicePixelRatio, 2) : window.devicePixelRatio || 1 // Limit DPR on mobile
     };
     
     // Load saved configuration from localStorage if available
@@ -44,7 +49,18 @@ document.addEventListener('DOMContentLoaded', async function() {
         try {
             const savedConfig = localStorage.getItem('particleConfig');
             if (savedConfig) {
-                return { ...defaultConfig, ...JSON.parse(savedConfig) };
+                // Apply device-specific overrides to saved config
+                const parsedConfig = JSON.parse(savedConfig);
+                
+                // Always use device-specific settings regardless of saved config
+                if (isMobile) {
+                    parsedConfig.starSize = Math.min(parsedConfig.starSize, defaultConfig.starSize);
+                    parsedConfig.maxStarSize = Math.min(parsedConfig.maxStarSize, defaultConfig.maxStarSize);
+                    parsedConfig.particleCount = Math.min(parsedConfig.particleCount, defaultConfig.particleCount);
+                    parsedConfig.devicePixelRatio = defaultConfig.devicePixelRatio;
+                }
+                
+                return { ...defaultConfig, ...parsedConfig };
             }
         } catch (e) {
             console.warn('Could not load particle settings:', e);
@@ -76,7 +92,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Set the canvas size to match window size
     function resizeCanvas() {
-        const devicePixelRatio = window.devicePixelRatio || 1;
+        const devicePixelRatio = config.devicePixelRatio || 1; // Use config value
         const width = window.innerWidth;
         const height = window.innerHeight;
         canvas.width = width * devicePixelRatio;
@@ -169,6 +185,9 @@ document.addEventListener('DOMContentLoaded', async function() {
             // Calculate viewport to document ratio for better distribution
             const viewportRatio = window.innerHeight / documentHeight;
             
+            // Scale factor for mobile devices
+            const scaleFactor = isMobile ? 0.6 : 1.0;
+            
             // Create more particles to ensure better coverage
             for (let i = 0; i < particleCount; i++) {
                 const baseIndex = i * 12; // Update index calculation for 12 values
@@ -192,9 +211,9 @@ document.addEventListener('DOMContentLoaded', async function() {
                     baseSize = 0.035; // Large stars base
                 }
                 
-                // Apply random size variation based on min/max settings
+                // Apply random size variation based on min/max settings AND scale for mobile
                 const sizeVariation = Math.random() * (config.maxStarSize - config.minStarSize) + config.minStarSize;
-                const size = baseSize * sizeVariation * config.starSize;
+                const size = baseSize * sizeVariation * config.starSize * scaleFactor;
                 particlesData[baseIndex + 2] = size;
                 
                 // Color (pick from starColors array based on type)
@@ -1238,7 +1257,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         helpText.style.marginTop = '15px';
         helpText.style.fontSize = '11px';
         helpText.style.color = '#aaa';
-        helpText.innerHTML = 'Using WebGPU for hardware-accelerated rendering.<br>Adjust particle count for performance.<br>Background has separate controls in its own panel.';
+        helpText.innerHTML = `Using WebGPU for hardware-accelerated rendering.<br>Adjust particle count for performance.<br>Optimized for ${isMobile ? 'mobile' : 'desktop'} device.<br>Background has separate controls in its own panel.`;
         
         controlsContent.appendChild(helpText);
         
@@ -1341,4 +1360,51 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
     }, 1000);
+
+    // Add responsive media queries listener to update particles when screen orientation changes
+    window.addEventListener('orientationchange', function() {
+        setTimeout(() => {
+            // Update isMobile status
+            const newIsMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+            
+            // Only redraw if the device category changed
+            if (newIsMobile !== isMobile) {
+                // Recreate particles with new sizes
+                particlesBuffer = createParticleBuffer(config.particleCount);
+                resizeCanvas();
+            } else {
+                // Just resize the canvas
+                resizeCanvas();
+            }
+        }, 300); // Short delay to ensure orientation change is complete
+    });
+
+    // Adjust rendering quality based on performance
+    let frameCount = 0;
+    let lastFrameTime = performance.now();
+    let frameRate = 60;
+    
+    function monitorPerformance(timestamp) {
+        frameCount++;
+        const elapsed = timestamp - lastFrameTime;
+        
+        if (elapsed > 1000) { // Update every second
+            frameRate = frameCount / (elapsed / 1000);
+            frameCount = 0;
+            lastFrameTime = timestamp;
+            
+            // If frame rate drops too low, reduce particle count automatically
+            if (frameRate < 30 && config.particleCount > 1000) {
+                console.log(`Low frame rate detected (${frameRate.toFixed(1)} FPS). Reducing particles.`);
+                config.particleCount = Math.max(1000, Math.floor(config.particleCount * 0.8));
+                particlesBuffer = createParticleBuffer(config.particleCount);
+                saveParticleConfig(config);
+            }
+        }
+        
+        requestAnimationFrame(monitorPerformance);
+    }
+    
+    // Start performance monitoring
+    requestAnimationFrame(monitorPerformance);
 });
