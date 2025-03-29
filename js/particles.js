@@ -86,13 +86,13 @@ document.addEventListener('DOMContentLoaded', function() {
     addParticleControls(config);
     
     // Set container styles explicitly to ensure proper rendering
-    container.style.position = 'absolute'; // Changed from 'fixed' to 'absolute' to scroll with page
+    container.style.position = 'fixed'; // Change back to 'fixed' to keep stars in viewport
     container.style.top = '0';
     container.style.left = '0';
     container.style.width = '100%';
     container.style.height = '100%';
     container.style.overflow = 'hidden';
-    container.style.zIndex = '1'; 
+    container.style.zIndex = '0';  
     container.style.pointerEvents = 'none';
     
     // Extend the container to cover the full page height
@@ -104,10 +104,10 @@ document.addEventListener('DOMContentLoaded', function() {
             document.documentElement.scrollHeight,
             document.documentElement.offsetHeight
         );
-        container.style.height = docHeight + 'px';
+        container.style.height = '100%'; // Keep fixed at 100% viewport height
         
         // Make sure space background covers the full height as well
-        spaceBackground.style.height = docHeight + 'px';
+        spaceBackground.style.height = '100%'; // Keep background fixed height
     }
     
     // Call initially and on window resize
@@ -140,14 +140,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const particleCount = config.particleCount;
     const dustCloudCount = config.dustCloudCount;
     
+    // Initialize a particles array to track all created particles
+    const particles = [];
+    
     // First create stars
     for (let i = 0; i < particleCount; i++) {
-        createParticle();
+        const particle = createParticle();
+        if (particle) particles.push(particle);
     }
     
     // Then create dust cloud particles
     for (let i = 0; i < dustCloudCount; i++) {
-        createDustParticle();
+        const dust = createDustParticle();
+        if (dust) particles.push(dust);
     }
     
     // Add star shape CSS to the document
@@ -613,17 +618,14 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Force an initial parallax update to position all elements
     setTimeout(() => {
-        // We're not using parallax anymore, but we'll keep this call
-        // to ensure all particles are properly positioned initially
+        updateParallax();
     }, 100);
     
-    // Function to update parallax positions - now just a placeholder since we're removing parallax
-    function updateParallax() {
-        // This function is empty as we've removed the parallax effect completely
-    }
-
-    // Remove the scroll event listener completely
-    window.removeEventListener('scroll', function() {
+    // Variable to track animation frame requests
+    let ticking = false;
+    
+    // Update parallax effect on scroll
+    window.addEventListener('scroll', function() {
         if (!ticking) {
             window.requestAnimationFrame(function() {
                 updateParallax();
@@ -633,22 +635,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Process particles with different rates based on visibility priority
-    for (let i = 0; i < particles.length; i++) {
-        const particle = particles[i];
+    // Function to update parallax positions based on scroll position
+    function updateParallax() {
+        const scrollY = window.scrollY || window.pageYOffset;
         
-        // Reset any transform that might have been applied by the parallax effect
-        particle.style.transform = '';
-        // Remove transition for transform since we're not animating position with parallax
-        particle.style.transition = particle.style.transition.replace(/transform [^,]*,?\s?/, '');
+        // Update positions of all particles based on scroll
+        particles.forEach(particle => {
+            if (particle.dataset && particle.dataset.parallaxDepth) {
+                const depth = parseFloat(particle.dataset.parallaxDepth) * config.parallaxStrength;
+                const movement = scrollY * depth * 0.05;
+                
+                // Apply transform based on original position and scroll movement
+                const originalY = parseFloat(particle.dataset.originalY || 0);
+                particle.style.transform = `translateY(${movement}px)`;
+            }
+        });
     }
-    
-    // Periodically reposition some random particles for more dynamic scene
-    function repositionRandomParticles() {
-        // This function is not used anymore since particles have their own lifecycle
-    }
-    
-    // We don't need to periodically call repositionRandomParticles anymore
     
     // Create controls for adjusting particle count and parallax effect
     function addParticleControls(config) {
