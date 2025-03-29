@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', async function() {
         starBrightness: 5,         // Updated to match the image
         minBrightness: 0.3,        // Updated to match the image
         maxBrightness: 1,          // Updated to match the image
-        starSize: 1,               // Updated to match the image
-        minStarSize: 0.25,          // Updated to match the image
+        starSize: 0.25,               // Updated to match the image
+        minStarSize: 1,          // Updated to match the image
         maxStarSize: 1,          // Updated to match the image
         lifetime: 1,               // Updated to match the image
         minLifetime: 0.1,          // Updated to match the image
