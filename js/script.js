@@ -104,6 +104,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 2000);
         });
     }
+
+    // Initialize typewriter effect
+    initTypewriterEffect();
 });
 
 // Add interactive mouse effect with fixed position tracking
@@ -213,12 +216,12 @@ function updateScrollProgress() {
 
 // Function to initialize 3D tilt effect
 function init3DTiltEffect() {
-    // Add tilt effect to gallery items, skill categories and about image
-    const tiltElements = document.querySelectorAll('.gallery-item, .skill-category, .about-image, .contact-form');
-    
+    // Add tilt effect to gallery items, skill categories, and about image only
+    const tiltElements = document.querySelectorAll('.gallery-item, .skill-category, .about-image');
+
     tiltElements.forEach(element => {
         element.classList.add('tilt-element');
-        
+
         // Add event listeners for mouse movement
         element.addEventListener('mousemove', handleTiltMove);
         element.addEventListener('mouseleave', handleTiltLeave);
@@ -355,4 +358,25 @@ function createProjectCard(repo) {
     card.appendChild(infoDiv);
     
     return card;
+}
+
+// Add typewriter effect to elements with the class 'typewriter'
+function initTypewriterEffect() {
+    const typewriterElements = document.querySelectorAll('.typewriter');
+
+    typewriterElements.forEach(element => {
+        const text = element.textContent;
+        element.textContent = '';
+        let index = 0;
+
+        function typeCharacter() {
+            if (index < text.length) {
+                element.textContent += text.charAt(index);
+                index++;
+                setTimeout(typeCharacter, 100); // Adjust typing speed here
+            }
+        }
+
+        typeCharacter();
+    });
 }
