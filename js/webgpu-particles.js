@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         starBrightness: isMobile ? 3 : 5,       // Reduce brightness on mobile
         minBrightness: 0.3,                     // Updated to match the image
         maxBrightness: 1,                       // Updated to match the image
-        starSize: isMobile ? 0.5 : 1,           // Smaller stars on mobile
+        starSize: isMobile ? 0.5 : 0.25,           // Smaller stars on mobile
         minStarSize: 0.25,                      // Changed from 1 to 0.25
         maxStarSize: isMobile ? 0.6 : 1,        // Smaller max size on mobile
         lifetime: 1,                            // Updated to match the image
