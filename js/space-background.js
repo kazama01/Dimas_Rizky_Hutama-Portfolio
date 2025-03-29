@@ -1,11 +1,22 @@
+/**
+ * SpaceBackground - Creates an animated space background with nebula effects
+ * 
+ * Features:
+ * - Radial gradient background
+ * - Nebula overlay with customizable opacity and filter
+ * - Persistent configuration using localStorage
+ */
 class SpaceBackground {
+  /**
+   * Constructor - Initialize the background system
+   */
   constructor() {
     this.initialized = false;
     
-    // Updated default configuration
+    // Default configuration
     this.config = {
-      zIndex: -10,  // Changed from -2 to -10
-      nebulaOpacity: 0.55, // Changed from 0.3 to 0.55
+      zIndex: -10,
+      nebulaOpacity: 0.55,
       nebulaFilter: 'hue-rotate(240deg) saturate(150%)',
       gradientColors: {
         center: '#1a0b2e',
@@ -20,15 +31,33 @@ class SpaceBackground {
     
     // Initialize the background
     this.init();
-    
-    // Controller removed
   }
   
+  /**
+   * Initialize the background elements
+   */
   init() {
     // Create container for the background
-    this.container = document.createElement('div');
-    this.container.className = 'space-background';
-    this.container.style.cssText = `
+    this.container = this.createBackgroundContainer();
+    
+    // Create nebula overlay
+    this.nebulaOverlay = this.createNebulaOverlay();
+    
+    // Add elements to the DOM
+    this.container.appendChild(this.nebulaOverlay);
+    document.body.appendChild(this.container);
+    
+    this.initialized = true;
+  }
+  
+  /**
+   * Create the main background container
+   * @returns {HTMLElement} The background container element
+   */
+  createBackgroundContainer() {
+    const container = document.createElement('div');
+    container.className = 'space-background';
+    container.style.cssText = `
       position: fixed;
       top: 0;
       left: 0;
@@ -43,10 +72,17 @@ class SpaceBackground {
       background-attachment: fixed;
     `;
     
-    // Create nebula overlay
-    this.nebulaOverlay = document.createElement('div');
-    this.nebulaOverlay.className = 'nebula-overlay';
-    this.nebulaOverlay.style.cssText = `
+    return container;
+  }
+  
+  /**
+   * Create the nebula overlay element
+   * @returns {HTMLElement} The nebula overlay element
+   */
+  createNebulaOverlay() {
+    const overlay = document.createElement('div');
+    overlay.className = 'nebula-overlay';
+    overlay.style.cssText = `
       position: fixed;
       top: 0;
       left: 0;
@@ -59,21 +95,17 @@ class SpaceBackground {
       pointer-events: none;
     `;
     
-    // Add elements to the DOM
-    this.container.appendChild(this.nebulaOverlay);
-    document.body.appendChild(this.container);
-    
-    this.initialized = true;
+    return overlay;
   }
   
+  /**
+   * Update styles based on current configuration
+   */
   updateStyles() {
     if (!this.initialized) return;
     
     // Update z-index
     this.container.style.zIndex = this.config.zIndex;
-    
-    // No need for special alpha handling now since HTML background is transparent
-    // Just use the user-configured alpha value
     
     // Update background gradient with alpha
     const centerColor = this.hexToRgba(this.config.gradientColors.center, this.config.alpha);
@@ -96,7 +128,12 @@ class SpaceBackground {
     this.saveConfig();
   }
   
-  // Helper function to convert hex color to rgba
+  /**
+   * Convert a hex color to rgba format
+   * @param {string} hex - Hex color code (e.g. "#123456" or "#123")
+   * @param {number} alpha - Alpha value between 0 and 1
+   * @returns {string} rgba color string
+   */
   hexToRgba(hex, alpha) {
     // Remove the hash at the front if present
     hex = hex.replace(/^#/, '');
@@ -119,6 +156,9 @@ class SpaceBackground {
     return `rgba(${r}, ${g}, ${b}, ${alpha})`;
   }
   
+  /**
+   * Save current configuration to localStorage
+   */
   saveConfig() {
     try {
       localStorage.setItem('spaceBackgroundConfig', JSON.stringify(this.config));
@@ -127,6 +167,9 @@ class SpaceBackground {
     }
   }
   
+  /**
+   * Load configuration from localStorage
+   */
   loadConfig() {
     try {
       const savedConfig = localStorage.getItem('spaceBackgroundConfig');
@@ -141,7 +184,7 @@ class SpaceBackground {
 
 // Initialize the background when the page loads
 window.addEventListener('DOMContentLoaded', () => {
-  // Also add a style to ensure body background is transparent
+  // Ensure body background is transparent
   document.body.style.backgroundColor = 'transparent';
   
   new SpaceBackground();

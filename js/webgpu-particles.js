@@ -1361,50 +1361,81 @@ document.addEventListener('DOMContentLoaded', async function() {
         });
     }, 1000);
 
-    // Add responsive media queries listener to update particles when screen orientation changes
-    window.addEventListener('orientationchange', function() {
+    /**
+     * Handles screen orientation changes and updates particle system accordingly
+     * @param {number} delay - Delay in ms before handling orientation change
+     */
+    const handleOrientationChange = (delay = 300) => {
         setTimeout(() => {
-            // Update isMobile status
-            const newIsMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+            const newIsMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+                || window.innerWidth < 768;
             
-            // Only redraw if the device category changed
             if (newIsMobile !== isMobile) {
-                // Recreate particles with new sizes
+                // Device category changed - full particle system rebuild
                 particlesBuffer = createParticleBuffer(config.particleCount);
                 resizeCanvas();
             } else {
-                // Just resize the canvas
+                // Same device category - just resize canvas
                 resizeCanvas();
             }
-        }, 300); // Short delay to ensure orientation change is complete
-    });
+        }, delay);
+    };
 
-    // Adjust rendering quality based on performance
-    let frameCount = 0;
-    let lastFrameTime = performance.now();
-    let frameRate = 60;
-    
-    function monitorPerformance(timestamp) {
-        frameCount++;
-        const elapsed = timestamp - lastFrameTime;
-        
-        if (elapsed > 1000) { // Update every second
-            frameRate = frameCount / (elapsed / 1000);
-            frameCount = 0;
-            lastFrameTime = timestamp;
-            
-            // If frame rate drops too low, reduce particle count automatically
-            if (frameRate < 30 && config.particleCount > 1000) {
-                console.log(`Low frame rate detected (${frameRate.toFixed(1)} FPS). Reducing particles.`);
-                config.particleCount = Math.max(1000, Math.floor(config.particleCount * 0.8));
+    // Listen for orientation changes
+    window.addEventListener('orientationchange', () => handleOrientationChange());
+
+    /**
+     * Performance monitoring system
+     * Automatically adjusts particle count based on frame rate
+     */
+    class PerformanceMonitor {
+        constructor() {
+            this.frameCount = 0;
+            this.lastFrameTime = performance.now();
+            this.frameRate = 60;
+            this.minAcceptableFrameRate = 30;
+            this.minParticleCount = 1000;
+            this.particleReductionFactor = 0.8;
+        }
+
+        /**
+         * Updates performance metrics and adjusts particle count if needed
+         * @param {DOMHighResTimeStamp} timestamp 
+         */
+        monitor = (timestamp) => {
+            this.frameCount++;
+            const elapsed = timestamp - this.lastFrameTime;
+
+            if (elapsed > 1000) { // Update metrics every second
+                this.frameRate = this.frameCount / (elapsed / 1000);
+                this.frameCount = 0;
+                this.lastFrameTime = timestamp;
+
+                this.adjustParticleCount();
+            }
+
+            requestAnimationFrame(this.monitor);
+        };
+
+        /**
+         * Reduces particle count if frame rate is too low
+         */
+        adjustParticleCount() {
+            if (this.frameRate < this.minAcceptableFrameRate && config.particleCount > this.minParticleCount) {
+                console.log(`Performance optimization: ${this.frameRate.toFixed(1)} FPS - Reducing particles`);
+                
+                config.particleCount = Math.max(
+                    this.minParticleCount, 
+                    Math.floor(config.particleCount * this.particleReductionFactor)
+                );
+                
                 particlesBuffer = createParticleBuffer(config.particleCount);
                 saveParticleConfig(config);
             }
         }
-        
-        requestAnimationFrame(monitorPerformance);
     }
-    
-    // Start performance monitoring
-    requestAnimationFrame(monitorPerformance);
+
+    // Initialize and start performance monitoring
+    const performanceMonitor = new PerformanceMonitor();
+    requestAnimationFrame(performanceMonitor.monitor);
 });

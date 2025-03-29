@@ -1,35 +1,80 @@
-// js/script.js
+// Main JavaScript functionality for the portfolio website
 
+// Wait for DOM content to be fully loaded before executing code
 document.addEventListener('DOMContentLoaded', function() {
-    // Get current year for footer
-    document.getElementById('current-year').textContent = new Date().getFullYear();
+    initializePage();
+    setupEventListeners();
+});
 
-    // GitHub username - replace with your own
-    const githubUsername = 'yourusername';
-
-    // Fetch GitHub repositories
-    fetchGitHubRepos(githubUsername);
-
-    // Initialize scroll progress indicator
-    initScrollProgressIndicator();
+/**
+ * Initialize the page with all required functionality
+ */
+function initializePage() {
+    // Update footer with current year
+    updateFooterYear();
     
-    // Initialize 3D tilt effect
+    // Setup GitHub projects if applicable
+    const githubUsername = 'yourusername';
+    fetchGitHubRepos(githubUsername);
+    
+    // Initialize UI components
+    initScrollProgressIndicator();
     init3DTiltEffect();
+    initTypewriterEffect();
+    initTextRevealAnimation();
+}
 
-    // Form submission handler - remove the alert for Formspree forms
+/**
+ * Set up all event listeners for the page
+ */
+function setupEventListeners() {
+    // Form submission handling
+    setupFormHandler();
+    
+    // Smooth scrolling for navigation
+    setupSmoothScrolling();
+    
+    // Email link handler
+    setupEmailLinks();
+    
+    // Resume download functionality
+    setupResumeDownload();
+    
+    // Mouse effect tracking
+    setupMouseEffects();
+    
+    // Section visibility and scroll effects
+    setupScrollEffects();
+    
+    // Hover effects for interactive elements
+    setupHoverEffects();
+}
+
+/**
+ * Update the footer with the current year
+ */
+function updateFooterYear() {
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+}
+
+/**
+ * Handle form submissions
+ */
+function setupFormHandler() {
     const contactForm = document.getElementById('contact-form');
     if (contactForm && !contactForm.getAttribute('action').includes('formspree')) {
         contactForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            // In a real implementation, you would send the form data to a server
-            // For now, just show a success message
             alert('Thank you for your message! This is a demonstration and the message was not actually sent.');
             contactForm.reset();
         });
     }
+}
 
-    // Smooth scrolling for navigation links
+/**
+ * Setup smooth scrolling for navigation links
+ */
+function setupSmoothScrolling() {
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
             e.preventDefault();
@@ -46,8 +91,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+}
 
-    // Email link handler
+/**
+ * Setup custom handling for email links
+ */
+function setupEmailLinks() {
     const emailLinks = document.querySelectorAll('a[href^="mailto:"]');
     emailLinks.forEach(link => {
         link.addEventListener('click', function(e) {
@@ -56,61 +105,62 @@ document.addEventListener('DOMContentLoaded', function() {
             window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}`, '_blank');
         });
     });
+}
 
-    // Handle resume download button click
+/**
+ * Setup resume download functionality
+ */
+function setupResumeDownload() {
     const resumeBtn = document.getElementById('resume-btn');
     if (resumeBtn) {
-        resumeBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // Path to the resume file - relative to the website root
-            const resumePath = 'Documents/DimasRizky-Resume.pdf';
-            
-            // Create an anchor element
-            const downloadLink = document.createElement('a');
-            downloadLink.href = resumePath;
-            downloadLink.download = 'DimasRizky-Resume.pdf'; // Set the download filename
-            downloadLink.target = '_blank'; // Open in new tab as fallback
-            
-            // Add a success message
-            const message = document.createElement('div');
-            message.style.position = 'fixed';
-            message.style.top = '20px';
-            message.style.left = '50%';
-            message.style.transform = 'translateX(-50%)';
-            message.style.backgroundColor = 'rgba(100, 255, 218, 0.9)';
-            message.style.color = '#121212';
-            message.style.padding = '10px 20px';
-            message.style.borderRadius = '5px';
-            message.style.zIndex = '9999';
-            message.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-            message.textContent = 'Downloading resume...';
-            document.body.appendChild(message);
-            
-            // Append to the body (required for Firefox)
-            document.body.appendChild(downloadLink);
-            
-            // Programmatically click the link to trigger download
-            downloadLink.click();
-            
-            // Clean up
-            document.body.removeChild(downloadLink);
-            
-            // Remove message after a delay
-            setTimeout(() => {
-                message.style.opacity = '0';
-                message.style.transition = 'opacity 0.5s ease';
-                setTimeout(() => document.body.removeChild(message), 500);
-            }, 2000);
-        });
+        resumeBtn.addEventListener('click', handleResumeDownload);
     }
+}
 
-    // Initialize typewriter effect
-    initTypewriterEffect();
-});
+/**
+ * Handle the resume download process
+ */
+function handleResumeDownload(e) {
+    e.preventDefault();
+    
+    // Path to the resume file
+    const resumePath = 'Documents/DimasRizky-Resume.pdf';
+    
+    // Show download notification
+    const message = createNotification('Downloading resume...', 'rgba(100, 255, 218, 0.9)');
+    document.body.appendChild(message);
+    
+    // Create and trigger download
+    const downloadLink = document.createElement('a');
+    downloadLink.href = resumePath;
+    downloadLink.download = 'DimasRizky-Resume.pdf';
+    downloadLink.target = '_blank';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+    
+    // Remove notification after delay
+    setTimeout(() => {
+        fadeOutAndRemove(message);
+    }, 2000);
+}
 
-// Add interactive mouse effect with fixed position tracking
-document.addEventListener('mousemove', function(e) {
+/**
+ * Setup mouse effect tracking
+ */
+function setupMouseEffects() {
+    // Mouse movement tracking
+    document.addEventListener('mousemove', updateMouseEffectPosition);
+    
+    // Mouse enter/leave window
+    document.addEventListener('mouseleave', hideMouseEffect);
+    document.addEventListener('mouseenter', showMouseEffect);
+}
+
+/**
+ * Update the position of the mouse effect element
+ */
+function updateMouseEffectPosition(e) {
     let mouseEffect = document.getElementById('mouse-effect');
     if (!mouseEffect) {
         mouseEffect = document.createElement('div');
@@ -118,47 +168,47 @@ document.addEventListener('mousemove', function(e) {
         document.body.appendChild(mouseEffect);
     }
     
-    // Use clientX/Y for accurate cursor position
     mouseEffect.style.left = `${e.clientX}px`;
     mouseEffect.style.top = `${e.clientY}px`;
-});
+}
 
-// Handle mouse leaving and entering the window
-document.addEventListener('mouseleave', function() {
+/**
+ * Hide the mouse effect when mouse leaves window
+ */
+function hideMouseEffect() {
     const mouseEffect = document.getElementById('mouse-effect');
     if (mouseEffect) {
         mouseEffect.style.opacity = '0';
     }
-});
+}
 
-document.addEventListener('mouseenter', function(e) {
+/**
+ * Show and position the mouse effect when mouse enters window
+ */
+function showMouseEffect(e) {
     const mouseEffect = document.getElementById('mouse-effect');
     if (mouseEffect) {
         mouseEffect.style.opacity = '1';
         mouseEffect.style.left = `${e.clientX}px`;
         mouseEffect.style.top = `${e.clientY}px`;
     }
-});
+}
 
-// Add dynamic section transition
-document.addEventListener('scroll', function() {
-    document.querySelectorAll('section').forEach(section => {
-        const rect = section.getBoundingClientRect();
-        if (rect.top < window.innerHeight && rect.bottom > 0) {
-            section.classList.add('visible');
-            section.classList.add('enhanced'); // Add enhanced effect when section is in viewport
-        } else {
-            section.classList.remove('enhanced');
-            section.classList.remove('visible');
-        }
+/**
+ * Setup section visibility and scroll effects
+ */
+function setupScrollEffects() {
+    // Handle section visibility on scroll
+    document.addEventListener('scroll', () => {
+        updateSectionVisibility();
+        updateScrollProgress();
     });
-    
-    // Update scroll progress indicator
-    updateScrollProgress();
-});
+}
 
-// Add fade-in effects for elements as they scroll into view
-document.addEventListener('scroll', function() {
+/**
+ * Update section visibility based on scroll position
+ */
+function updateSectionVisibility() {
     document.querySelectorAll('section').forEach(section => {
         const rect = section.getBoundingClientRect();
         if (rect.top < window.innerHeight && rect.bottom > 0) {
@@ -169,24 +219,43 @@ document.addEventListener('scroll', function() {
             section.classList.remove('visible');
         }
     });
-});
+}
 
-// Enhance hover effects for buttons, links, and images
-document.querySelectorAll('button, a, img').forEach(element => {
-    element.addEventListener('mouseenter', () => {
-        element.style.transition = 'transform 0.3s, box-shadow 0.3s';
-        element.style.transform = 'scale(1.05)';
-        element.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+/**
+ * Setup hover effects for interactive elements
+ */
+function setupHoverEffects() {
+    document.querySelectorAll('button, a, img').forEach(element => {
+        element.addEventListener('mouseenter', () => {
+            applyHoverEffect(element);
+        });
+        element.addEventListener('mouseleave', () => {
+            removeHoverEffect(element);
+        });
     });
-    element.addEventListener('mouseleave', () => {
-        element.style.transform = 'scale(1)';
-        element.style.boxShadow = 'none';
-    });
-});
+}
 
-// Function to initialize scroll progress indicator
+/**
+ * Apply hover effect to an element
+ */
+function applyHoverEffect(element) {
+    element.style.transition = 'transform 0.3s, box-shadow 0.3s';
+    element.style.transform = 'scale(1.05)';
+    element.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+}
+
+/**
+ * Remove hover effect from an element
+ */
+function removeHoverEffect(element) {
+    element.style.transform = 'scale(1)';
+    element.style.boxShadow = 'none';
+}
+
+/**
+ * Initialize the scroll progress indicator
+ */
 function initScrollProgressIndicator() {
-    // Create the scroll progress elements if they don't exist yet
     if (!document.querySelector('.scroll-progress-container')) {
         const container = document.createElement('div');
         container.className = 'scroll-progress-container';
@@ -198,11 +267,12 @@ function initScrollProgressIndicator() {
         document.body.prepend(container);
     }
     
-    // Initial update
     updateScrollProgress();
 }
 
-// Function to update scroll progress indicator
+/**
+ * Update the scroll progress indicator based on current scroll position
+ */
 function updateScrollProgress() {
     const scrollProgress = document.querySelector('.scroll-progress-bar');
     if (scrollProgress) {
@@ -214,21 +284,22 @@ function updateScrollProgress() {
     }
 }
 
-// Function to initialize 3D tilt effect
+/**
+ * Initialize 3D tilt effect on designated elements
+ */
 function init3DTiltEffect() {
-    // Add tilt effect to gallery items, skill categories, and about image only
     const tiltElements = document.querySelectorAll('.gallery-item, .skill-category, .about-image');
 
     tiltElements.forEach(element => {
         element.classList.add('tilt-element');
-
-        // Add event listeners for mouse movement
         element.addEventListener('mousemove', handleTiltMove);
         element.addEventListener('mouseleave', handleTiltLeave);
     });
 }
 
-// Function to handle mouse movement for tilt effect
+/**
+ * Handle mouse movement for the tilt effect
+ */
 function handleTiltMove(e) {
     const element = e.currentTarget;
     const elementRect = element.getBoundingClientRect();
@@ -237,51 +308,55 @@ function handleTiltMove(e) {
     const x = e.clientX - elementRect.left;
     const y = e.clientY - elementRect.top;
     
-    // Calculate position as a percentage of the element's dimensions
+    // Calculate position as a percentage
     const xPercent = (x / elementRect.width) * 100;
     const yPercent = (y / elementRect.height) * 100;
     
-    // Calculate the tilt - maximum tilt of 10 degrees
+    // Calculate the tilt angles
     const maxTilt = 5;
-    const xTilt = (xPercent / 50 - 1) * maxTilt; // -maxTilt to +maxTilt
-    const yTilt = (yPercent / 50 - 1) * -maxTilt; // +maxTilt to -maxTilt (inverted)
-    
-    // Add a subtle "lift" effect
-    const scale = 1.02;
+    const xTilt = (xPercent / 50 - 1) * maxTilt;
+    const yTilt = (yPercent / 50 - 1) * -maxTilt;
     
     // Apply transform
-    element.style.transform = `perspective(1000px) rotateX(${yTilt}deg) rotateY(${xTilt}deg) scale(${scale})`;
+    element.style.transform = `perspective(1000px) rotateX(${yTilt}deg) rotateY(${xTilt}deg) scale(1.02)`;
     
-    // Add a subtle sheen/glow effect based on mouse position for some elements
+    // Add shine effect for certain elements
     if (element.classList.contains('gallery-item') || element.classList.contains('about-image')) {
-        // Calculate the light position
-        const shine = `radial-gradient(circle at ${xPercent}% ${yPercent}%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 80%)`;
-        
-        // Apply the shine effect
-        element.style.background = shine;
-        
-        // Ensure the original background content is visible
-        if (element.querySelector('img')) {
-            element.querySelector('img').style.position = 'relative';
-            element.querySelector('img').style.zIndex = '1';
-        }
+        applyShineEffect(element, xPercent, yPercent);
     }
 }
 
-// Function to handle mouse leave for tilt effect
+/**
+ * Apply a shine/highlight effect based on mouse position
+ */
+function applyShineEffect(element, xPercent, yPercent) {
+    const shine = `radial-gradient(circle at ${xPercent}% ${yPercent}%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0) 80%)`;
+    element.style.background = shine;
+    
+    // Ensure the original content remains visible
+    if (element.querySelector('img')) {
+        element.querySelector('img').style.position = 'relative';
+        element.querySelector('img').style.zIndex = '1';
+    }
+}
+
+/**
+ * Handle mouse leave for the tilt effect
+ */
 function handleTiltLeave(e) {
     const element = e.currentTarget;
     
     // Reset transform and background
     element.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
     
-    // If it's a gallery item with shine effect, reset it but keep any original background
     if (element.classList.contains('gallery-item') || element.classList.contains('about-image')) {
         element.style.background = '';
     }
 }
 
-// Function to fetch GitHub repositories
+/**
+ * Fetch and display GitHub repositories
+ */
 function fetchGitHubRepos(username) {
     const projectsContainer = document.getElementById('github-projects');
     if (!projectsContainer) return;
@@ -300,7 +375,7 @@ function fetchGitHubRepos(username) {
                 loader.remove();
             }
 
-            // Filter out forked repositories (optional)
+            // Filter out forked repositories
             const filteredRepos = repos.filter(repo => !repo.fork);
             
             // Display repositories
@@ -320,7 +395,9 @@ function fetchGitHubRepos(username) {
         });
 }
 
-// Function to create a project card
+/**
+ * Create a project card for a GitHub repository
+ */
 function createProjectCard(repo) {
     const card = document.createElement('div');
     card.className = 'project-card';
@@ -328,15 +405,13 @@ function createProjectCard(repo) {
     // Create project image placeholder
     const imageDiv = document.createElement('div');
     imageDiv.className = 'project-image';
-    
-    // If the repo has a homepage, we could try to get a screenshot, but for now just use a placeholder
     imageDiv.innerHTML = `<i class="fas fa-code" style="font-size: 3rem;"></i>`;
     
     // Create project info
     const infoDiv = document.createElement('div');
     infoDiv.className = 'project-info';
     
-    // Get languages for the repository (this would require additional API calls in a real implementation)
+    // Format repository tags
     const tagsHTML = repo.topics && repo.topics.length ? 
         repo.topics.map(topic => `<span class="project-tag">${topic}</span>`).join('') :
         '<span class="project-tag">No tags</span>';
@@ -353,138 +428,157 @@ function createProjectCard(repo) {
         </div>
     `;
     
-    // Append elements to card
     card.appendChild(imageDiv);
     card.appendChild(infoDiv);
     
     return card;
 }
 
-// Add typewriter effect to elements with the class 'typewriter'
+/**
+ * Initialize typewriter effect for elements with class 'typewriter'
+ */
 function initTypewriterEffect() {
     const typewriterElements = document.querySelectorAll('.typewriter');
 
     typewriterElements.forEach(element => {
         const text = element.textContent;
         element.textContent = '';
-        let index = 0;
-
-        function typeCharacter() {
-            if (index < text.length) {
-                element.textContent += text.charAt(index);
-                index++;
-                setTimeout(typeCharacter, 100); // Adjust typing speed here
-            }
-        }
-
-        typeCharacter();
+        animateTypewriter(element, text);
     });
 }
 
-// Text reveal with typing effect on scroll
-document.addEventListener('DOMContentLoaded', () => {
+/**
+ * Animate the typewriter effect on an element
+ */
+function animateTypewriter(element, text, index = 0, speed = 100) {
+    if (index < text.length) {
+        element.textContent += text.charAt(index);
+        index++;
+        setTimeout(() => animateTypewriter(element, text, index, speed), speed);
+    }
+}
+
+/**
+ * Initialize text reveal animation with typing effect
+ */
+function initTextRevealAnimation() {
     const revealText = document.querySelector('.reveal-text');
     if (!revealText) return;
     
-    // Save original content properly
+    // Save original content
     const originalContent = revealText.innerHTML;
-    revealText.innerHTML = ''; // Clear the text initially
+    revealText.innerHTML = '';
 
-    function simulateTyping() {
-        // Create a temporary div to parse the HTML correctly
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = originalContent;
-        
-        // Get all paragraphs or create one if none exist
-        let paragraphs = tempDiv.querySelectorAll('p');
-        
-        // If no paragraphs found, wrap content in a paragraph
-        if (paragraphs.length === 0) {
-            const content = tempDiv.innerHTML;
-            tempDiv.innerHTML = `<p>${content}</p>`;
-            paragraphs = tempDiv.querySelectorAll('p');
-        }
-        
-        let currentParagraphIndex = 0;
-        let cursor = null;
-        
-        // Function to type a single paragraph
-        function typeParagraph() {
-            if (currentParagraphIndex >= paragraphs.length) {
-                return; // Finished all paragraphs
-            }
-            
-            const paragraphContent = paragraphs[currentParagraphIndex].textContent.trim();
-            const para = document.createElement('p');
-            para.className = 'typing-paragraph';
-            
-            // Only add cursor to the last paragraph
-            const isLastParagraph = currentParagraphIndex === paragraphs.length - 1;
-            
-            // Create text span to hold characters
-            const textSpan = document.createElement('span');
-            para.appendChild(textSpan);
-            
-            // Add the paragraph to the DOM
-            revealText.appendChild(para);
-            
-            // Create cursor if needed (only for last paragraph)
-            if (isLastParagraph) {
-                if (cursor) {
-                    // Remove any existing cursor first
-                    cursor.remove();
-                }
-                cursor = document.createElement('span');
-                cursor.className = 'typing-cursor';
-                para.appendChild(cursor);
-            }
-            
-            let charIndex = 0;
-            
-            // Function to type each character
-            function typeChar() {
-                if (charIndex < paragraphContent.length) {
-                    // Get next character and add it to text span
-                    const char = paragraphContent.charAt(charIndex);
-                    textSpan.textContent += char;
-                    charIndex++;
-                    
-                    // Schedule next character
-                    setTimeout(typeChar, 5);
-                } else {
-                    // Move to next paragraph
-                    currentParagraphIndex++;
-                    setTimeout(typeParagraph, 100);
-                }
-            }
-            
-            // Start typing characters
-            typeChar();
-        }
-        
-        // Begin typing the first paragraph
-        typeParagraph();
-    }
-
-    function checkIfVisible() {
+    function checkVisibility() {
         const rect = revealText.getBoundingClientRect();
         const windowHeight = window.innerHeight || document.documentElement.clientHeight;
         
         if (rect.top <= windowHeight * 0.8) {
-            simulateTyping();
-            window.removeEventListener('scroll', checkIfVisible);
+            simulateTyping(revealText, originalContent);
+            window.removeEventListener('scroll', checkVisibility);
         }
     }
     
-    // Check visibility immediately
+    // Check visibility immediately or set up scroll listener
     if (revealText.getBoundingClientRect().top <= window.innerHeight * 0.8) {
-        simulateTyping();
+        simulateTyping(revealText, originalContent);
     } else {
-        window.addEventListener('scroll', checkIfVisible);
+        window.addEventListener('scroll', checkVisibility);
     }
-});
+}
 
-// Ensure "Download Resume" is treated as a button
+/**
+ * Simulate typing effect for text reveal
+ */
+function simulateTyping(container, originalContent) {
+    // Parse HTML content correctly
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = originalContent;
+    
+    // Get or create paragraphs
+    let paragraphs = tempDiv.querySelectorAll('p');
+    if (paragraphs.length === 0) {
+        tempDiv.innerHTML = `<p>${tempDiv.innerHTML}</p>`;
+        paragraphs = tempDiv.querySelectorAll('p');
+    }
+    
+    // Start typing paragraphs in sequence
+    typeParagraphSequence(container, paragraphs);
+}
+
+/**
+ * Type a sequence of paragraphs one after another
+ */
+function typeParagraphSequence(container, paragraphs, currentIndex = 0, cursor = null) {
+    if (currentIndex >= paragraphs.length) return;
+    
+    const content = paragraphs[currentIndex].textContent.trim();
+    const para = document.createElement('p');
+    para.className = 'typing-paragraph';
+    
+    // Create text span for characters
+    const textSpan = document.createElement('span');
+    para.appendChild(textSpan);
+    container.appendChild(para);
+    
+    // Add cursor to the last paragraph
+    const isLastParagraph = currentIndex === paragraphs.length - 1;
+    if (isLastParagraph) {
+        if (cursor) cursor.remove();
+        cursor = document.createElement('span');
+        cursor.className = 'typing-cursor';
+        para.appendChild(cursor);
+    }
+    
+    // Start typing characters
+    typeCharacters(textSpan, content, 0, 5, () => {
+        currentIndex++;
+        setTimeout(() => typeParagraphSequence(container, paragraphs, currentIndex, cursor), 100);
+    });
+}
+
+/**
+ * Type characters one by one with a callback when complete
+ */
+function typeCharacters(element, text, index = 0, speed = 5, onComplete = null) {
+    if (index < text.length) {
+        element.textContent += text.charAt(index);
+        index++;
+        setTimeout(() => typeCharacters(element, text, index, speed, onComplete), speed);
+    } else if (onComplete) {
+        onComplete();
+    }
+}
+
+/**
+ * Create a notification element
+ */
+function createNotification(message, bgColor = 'rgba(100, 255, 218, 0.9)', textColor = '#121212') {
+    const notification = document.createElement('div');
+    notification.style.position = 'fixed';
+    notification.style.top = '20px';
+    notification.style.left = '50%';
+    notification.style.transform = 'translateX(-50%)';
+    notification.style.backgroundColor = bgColor;
+    notification.style.color = textColor;
+    notification.style.padding = '10px 20px';
+    notification.style.borderRadius = '5px';
+    notification.style.zIndex = '9999';
+    notification.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+    notification.textContent = message;
+    return notification;
+}
+
+/**
+ * Fade out and remove an element
+ */
+function fadeOutAndRemove(element, duration = 500) {
+    element.style.opacity = '0';
+    element.style.transition = `opacity ${duration}ms ease`;
+    setTimeout(() => element.remove(), duration);
+}
+
+// Additional resume download handler with iframe approach for better browser support
 document.addEventListener('DOMContentLoaded', () => {
     const resumeBtn = document.getElementById('resume-btn');
     if (resumeBtn) {
@@ -493,37 +587,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const resumePath = 'Documents/DimasRizky-Resume.pdf';
             
             // Create a download notification
-            const message = document.createElement('div');
-            message.style.position = 'fixed';
-            message.style.top = '20px';
-            message.style.left = '50%';
-            message.style.transform = 'translateX(-50%)';
-            message.style.backgroundColor = 'rgba(100, 255, 218, 0.9)';
-            message.style.color = '#121212';
-            message.style.padding = '10px 20px';
-            message.style.borderRadius = '5px';
-            message.style.zIndex = '9999';
-            message.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
-            message.textContent = 'Downloading resume...';
+            const message = createNotification('Downloading resume...', 'rgba(100, 255, 218, 0.9)');
             document.body.appendChild(message);
             
-            // Create an iframe that will handle the download without navigating
+            // Create an iframe for the download
             const iframe = document.createElement('iframe');
             iframe.style.display = 'none';
             iframe.onload = function() {
-                // After iframe loads, remove it from the DOM
                 setTimeout(() => document.body.removeChild(iframe), 1000);
             };
             
-            // Set iframe source to the PDF file
             document.body.appendChild(iframe);
             iframe.src = resumePath;
             
             // Remove message after a delay
             setTimeout(() => {
-                message.style.opacity = '0';
-                message.style.transition = 'opacity 0.5s ease';
-                setTimeout(() => document.body.removeChild(message), 500);
+                fadeOutAndRemove(message);
             }, 2000);
         });
     }
