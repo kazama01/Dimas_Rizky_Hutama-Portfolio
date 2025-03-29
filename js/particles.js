@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
     addParticleControls(config);
     
     // Set container styles explicitly to ensure proper rendering
-    container.style.position = 'fixed'; // Change back to 'fixed' to keep stars in viewport
+    container.style.position = 'absolute'; // Change to absolute so stars scroll with the page
     container.style.top = '0';
     container.style.left = '0';
     container.style.width = '100%';
@@ -104,15 +104,16 @@ document.addEventListener('DOMContentLoaded', function() {
             document.documentElement.scrollHeight,
             document.documentElement.offsetHeight
         );
-        container.style.height = '100%'; // Keep fixed at 100% viewport height
+        container.style.height = docHeight + 'px'; // Use document height instead of viewport height
         
         // Make sure space background covers the full height as well
-        spaceBackground.style.height = '100%'; // Keep background fixed height
+        spaceBackground.style.height = docHeight + 'px'; // Match background to document height
     }
     
     // Call initially and on window resize
     adjustContainerHeight();
     window.addEventListener('resize', adjustContainerHeight);
+    window.addEventListener('load', adjustContainerHeight); // Also adjust on load to catch all content
     
     // Multi-colored star palette (complementary colors based on teal)
     const starColors = [
@@ -124,16 +125,16 @@ document.addEventListener('DOMContentLoaded', function() {
         '#ffffff'  // Pure white for brightest stars
     ];
     
-    // Enhanced space dust particle colors - more variety and colors
+    // Enhanced space dust particle colors - more visibility with higher opacity
     const dustColors = [
-        'rgba(100, 255, 218, 0.2)', // Teal base
-        'rgba(158, 255, 235, 0.15)', // Light teal
-        'rgba(200, 255, 245, 0.1)', // Very light teal
-        'rgba(255, 255, 255, 0.1)', // White dust
-        'rgba(170, 170, 255, 0.08)', // Blueish dust
-        'rgba(255, 230, 200, 0.05)', // Yellowish/orange dust
-        'rgba(200, 200, 255, 0.07)', // Light blue dust
-        'rgba(255, 200, 255, 0.06)'  // Pinkish dust
+        'rgba(100, 255, 218, 0.4)', // Teal base - increased opacity
+        'rgba(158, 255, 235, 0.35)', // Light teal - increased opacity
+        'rgba(200, 255, 245, 0.3)', // Very light teal - increased opacity
+        'rgba(255, 255, 255, 0.25)', // White dust - increased opacity
+        'rgba(170, 170, 255, 0.3)', // Blueish dust - increased opacity
+        'rgba(255, 230, 200, 0.25)', // Yellowish/orange dust - increased opacity
+        'rgba(200, 200, 255, 0.28)', // Light blue dust - increased opacity
+        'rgba(255, 200, 255, 0.3)'  // Pinkish dust - increased opacity
     ];
     
     // Create static particle elements based on config
@@ -169,6 +170,8 @@ document.addEventListener('DOMContentLoaded', function() {
         
         .dust-particle {
             border-radius: 50%;
+            transform: translateZ(0); /* Hardware acceleration */
+            backdrop-filter: blur(0); /* Force rendering on some browsers */
         }
         
         @keyframes rotateStar {
@@ -225,7 +228,10 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Dynamic positioning across the entire viewport
         const posX = Math.random() * 120 - 10; // Allow slight overflow
-        const posY = Math.random() * 120 - 10;
+        const posY = Math.random() * document.body.scrollHeight; // Use absolute position in document
+        
+        // Convert posY to percentage for consistent positioning
+        const posYPercent = (posY / document.body.scrollHeight) * 100;
         
         // Set fade-in and fade-out timing for the lifecycle - SPEED UP (reduced all times by ~50%)
         const fadeInTime = starType === 0 ? Math.random() * 1000 + 1500 : 
@@ -282,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Position
         particle.style.left = `${posX}%`;
-        particle.style.top = `${posY}%`;
+        particle.style.top = `${posYPercent}%`; // Use percentage based on document height
         particle.style.opacity = '0'; // Start completely invisible
         particle.style.transition = `opacity ${fadeInTime}ms ease-in, width ${fadeOutTime}ms ease-out, height ${fadeOutTime}ms ease-out`; // Added size transition
         
@@ -388,12 +394,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function createDustParticle() {
         const dust = document.createElement('div');
         
-        // Tiny size for dust with more variation
-        const size = Math.random() * 1.2 + 0.1;
+        // Increase size range for dust particles to make them more visible
+        const size = Math.random() * 2.5 + 0.5; // Increased from (1.2 + 0.1) to (2.5 + 0.5)
         
-        // Position randomly with more spread
-        const posX = Math.random() * 120 - 10; // Allow slight overflow for more natural feel
-        const posY = Math.random() * 120 - 10;
+        // Position randomly with more spread throughout the entire document
+        const posX = Math.random() * 120 - 10;
+        const posY = Math.random() * document.body.scrollHeight; // Use absolute position in document
+        
+        // Convert posY to percentage for consistent positioning
+        const posYPercent = (posY / document.body.scrollHeight) * 100;
         
         // Dust particles move the fastest for extreme parallax
         const parallaxDepth = 1.2 + (1 / size) * 0.4; // Higher values for stronger movement
@@ -409,7 +418,7 @@ document.addEventListener('DOMContentLoaded', function() {
         dust.style.height = `${size}px`;
         dust.classList.add('dust-particle');
         dust.style.left = `${posX}%`;
-        dust.style.top = `${posY}%`;
+        dust.style.top = `${posYPercent}%`; // Use percentage based on document height
         dust.style.zIndex = '2'; // Above background, below stars
         dust.style.opacity = '0'; // Start completely invisible
         dust.style.transition = `opacity ${fadeInTime}ms ease-in`;
@@ -424,13 +433,16 @@ document.addEventListener('DOMContentLoaded', function() {
         const dustColorIndex = Math.floor(Math.random() * dustColors.length);
         dust.style.backgroundColor = dustColors[dustColorIndex];
         
+        // Add subtle glow effect to dust particles to enhance visibility
+        dust.style.boxShadow = `0 0 ${size * 1.5}px 1px ${dustColors[dustColorIndex]}`;
+        
         // Add to container
         container.appendChild(dust);
         
         // PHASE 1: FADE IN - Start fade in after a small delay
         setTimeout(() => {
-            // Target opacity for dust particles
-            const targetOpacity = Math.random() * 0.15 + 0.05;
+            // Target opacity for dust particles - increased
+            const targetOpacity = Math.random() * 0.4 + 0.2; // Increased from (0.15 + 0.05) to (0.4 + 0.2)
             dust.style.opacity = targetOpacity.toString();
             
             // PHASE 2: VISIBLE DURATION - After fade in, setup fade out
@@ -624,8 +636,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Variable to track animation frame requests
     let ticking = false;
     
-    // Update parallax effect on scroll
-    window.addEventListener('scroll', function() {
+    // Remove the parallax scroll event completely
+    window.removeEventListener('scroll', function() {
         if (!ticking) {
             window.requestAnimationFrame(function() {
                 updateParallax();
@@ -635,21 +647,9 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
-    // Function to update parallax positions based on scroll position
+    // Empty the updateParallax function since we don't want parallax effect
     function updateParallax() {
-        const scrollY = window.scrollY || window.pageYOffset;
-        
-        // Update positions of all particles based on scroll
-        particles.forEach(particle => {
-            if (particle.dataset && particle.dataset.parallaxDepth) {
-                const depth = parseFloat(particle.dataset.parallaxDepth) * config.parallaxStrength;
-                const movement = scrollY * depth * 0.05;
-                
-                // Apply transform based on original position and scroll movement
-                const originalY = parseFloat(particle.dataset.originalY || 0);
-                particle.style.transform = `translateY(${movement}px)`;
-            }
-        });
+        // Function intentionally left empty - no parallax effect
     }
     
     // Create controls for adjusting particle count and parallax effect
@@ -907,4 +907,9 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     resizeObserver.observe(document.body);
+    
+    // Also adjust container on scroll to ensure proper coverage as user scrolls
+    document.addEventListener('scroll', function() {
+        adjustContainerHeight();
+    });
 });
