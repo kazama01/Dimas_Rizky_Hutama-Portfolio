@@ -1,6 +1,6 @@
 // Simple, reliable particle system with multi-colored stars and space dust effect
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('Enhanced space particle system initializing with improved parallax...');
+    console.log('Enhanced space particle system initializing with stars only...');
     
     // Get particle container
     const container = document.getElementById('particle-container');
@@ -12,12 +12,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Clear any existing content
     container.innerHTML = '';
     
-    // Default configuration options for particle system
+    // Default configuration options for particle system - removed dust options
     const defaultConfig = {
-        particleCount: 400,      // Number of stars
-        dustCloudCount: 300,     // Number of dust particles
+        particleCount: 600,      // Increased number of stars (was 400)
         floatingRate: 0.3,       // Rate of floating particles (0-1)
-        parallaxStrength: 0.5,   // Multiplier for parallax effect (1-10)
         starBrightness: 1,       // Brightness of stars (0-1)
         particleMovement: 0.7    // Movement rate of particles (0-1)
     };
@@ -86,7 +84,7 @@ document.addEventListener('DOMContentLoaded', function() {
     addParticleControls(config);
     
     // Set container styles explicitly to ensure proper rendering
-    container.style.position = 'absolute'; // Change to absolute so stars scroll with the page
+    container.style.position = 'absolute'; // Keep absolute so stars scroll with the page
     container.style.top = '0';
     container.style.left = '0';
     container.style.width = '100%';
@@ -125,35 +123,16 @@ document.addEventListener('DOMContentLoaded', function() {
         '#ffffff'  // Pure white for brightest stars
     ];
     
-    // Enhanced space dust particle colors - more visibility with higher opacity
-    const dustColors = [
-        'rgba(100, 255, 218, 0.4)', // Teal base - increased opacity
-        'rgba(158, 255, 235, 0.35)', // Light teal - increased opacity
-        'rgba(200, 255, 245, 0.3)', // Very light teal - increased opacity
-        'rgba(255, 255, 255, 0.25)', // White dust - increased opacity
-        'rgba(170, 170, 255, 0.3)', // Blueish dust - increased opacity
-        'rgba(255, 230, 200, 0.25)', // Yellowish/orange dust - increased opacity
-        'rgba(200, 200, 255, 0.28)', // Light blue dust - increased opacity
-        'rgba(255, 200, 255, 0.3)'  // Pinkish dust - increased opacity
-    ];
-    
-    // Create static particle elements based on config
+    // Create star elements based on config
     const particleCount = config.particleCount;
-    const dustCloudCount = config.dustCloudCount;
     
     // Initialize a particles array to track all created particles
     const particles = [];
     
-    // First create stars
+    // Create stars
     for (let i = 0; i < particleCount; i++) {
         const particle = createParticle();
         if (particle) particles.push(particle);
-    }
-    
-    // Then create dust cloud particles
-    for (let i = 0; i < dustCloudCount; i++) {
-        const dust = createDustParticle();
-        if (dust) particles.push(dust);
     }
     
     // Add star shape CSS to the document
@@ -166,12 +145,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .tiny-star {
             clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
             transform: scale(0.8);
-        }
-        
-        .dust-particle {
-            border-radius: 50%;
-            transform: translateZ(0); /* Hardware acceleration */
-            backdrop-filter: blur(0); /* Force rendering on some browsers */
         }
         
         @keyframes rotateStar {
@@ -205,7 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function createParticle() {
         const particle = document.createElement('div');
         
-        // Create distinct star categories for stronger parallax differentiation
+        // Create distinct star categories for parallax differentiation
         // Determine star type (background, mid, or foreground) with equal distribution
         const starType = Math.floor(Math.random() * 3); // 0, 1, or 2
         
@@ -213,27 +186,28 @@ document.addEventListener('DOMContentLoaded', function() {
         let size;
         
         if (starType === 0) {
-            // Background stars (small, move very slowly) - increased from (2-6) to (3-7)
+            // Background stars (small)
             size = Math.random() * 4 + 3;
         } else if (starType === 1) {
-            // Mid-distance stars (medium, move moderately) - increased from (3-8) to (5-10)
+            // Mid-distance stars (medium)
             size = Math.random() * 5 + 5;
         } else {
-            // Foreground stars (larger, move faster) - increased from (4-11) to (8-15)
+            // Foreground stars (larger)
             size = Math.random() * 7 + 8;
         }
         
         // Store the original size to use during animations
         const originalSize = size;
         
-        // Dynamic positioning across the entire viewport
+        // Dynamic positioning across the entire document
         const posX = Math.random() * 120 - 10; // Allow slight overflow
         const posY = Math.random() * document.body.scrollHeight; // Use absolute position in document
         
         // Convert posY to percentage for consistent positioning
         const posYPercent = (posY / document.body.scrollHeight) * 100;
         
-        // Set fade-in and fade-out timing for the lifecycle - SPEED UP (reduced all times by ~50%)
+        // All stars must have fade in/out animation - adjust timings
+        // Make fade timings different for each star type for variety
         const fadeInTime = starType === 0 ? Math.random() * 1000 + 1500 : 
                           starType === 1 ? Math.random() * 800 + 1000 : 
                           Math.random() * 500 + 500;
@@ -246,32 +220,13 @@ document.addEventListener('DOMContentLoaded', function() {
                            starType === 1 ? Math.random() * 1000 + 800 : 
                            Math.random() * 500 + 500;
         
-        // Set very different parallax depth factors based on star type
-        let parallaxDepth;
-        
-        if (starType === 0) {
-            // Background stars (move very slowly)
-            parallaxDepth = 0.05 + (Math.random() * 0.05); 
-            // Set dimmer brightness for background stars
-            particle.dataset.brightness = 0.3;
-        } else if (starType === 1) {
-            // Mid-distance stars (move moderately)
-            parallaxDepth = 0.3 + (Math.random() * 0.2);
-            particle.dataset.brightness = 0.6;
-        } else {
-            // Foreground stars (move faster)
-            parallaxDepth = 0.8 + (Math.random() * 0.4);
-            particle.dataset.brightness = 0.9;
-        }
-        
         // Apply styles for star shape
         particle.style.position = 'absolute';
         particle.style.width = `${size}px`;
         particle.style.height = `${size}px`;
-        particle.style.zIndex = starType + 3; // +3 to be above space background (z-index 0-2)
+        particle.style.zIndex = starType + 3; // +3 to be above space background
         
-        // Apply star shape class instead of border-radius
-        // Use different shape classes based on size to ensure visibility
+        // Apply star shape class
         if (size < 4) {
             // Very small stars remain circular for better visibility
             particle.style.borderRadius = '50%';
@@ -299,7 +254,7 @@ document.addEventListener('DOMContentLoaded', function() {
         particle.dataset.originalX = posX;
         particle.dataset.originalY = posY;
         
-        // Pick a random color from the star color palette - different color schemes for different layers
+        // Random color selection based on star type
         let colorIndex;
         if (starType === 0) {
             // Background stars - blues and whites
@@ -315,32 +270,30 @@ document.addEventListener('DOMContentLoaded', function() {
         const starColor = starColors[colorIndex];
         particle.style.backgroundColor = starColor;
         
-        // Add glow effect based on the star's color and type - INCREASED glow size
+        // Add glow effect based on the star's color and type
         const glowSize = starType === 2 ? Math.random() * 12 + 8 : Math.random() * 8 + 2;
         particle.style.boxShadow = `0 0 ${glowSize}px 2px ${starColor}`;
         
-        // Add animation for some stars (twinkle effect)
-        if (Math.random() < 0.3) {
-            const animationDuration = Math.random() * 4 + 3;
-            particle.style.animation = `twinkleStar ${animationDuration}s ease-in-out infinite`;
-            
-            // Set CSS variables for the animation
-            const baseOpacity = Math.random() * 0.3 + config.starBrightness * parseFloat(particle.dataset.brightness || 0.5);
-            const maxOpacity = baseOpacity * 1.5;
-            particle.style.setProperty('--base-opacity', baseOpacity);
-            particle.style.setProperty('--max-opacity', maxOpacity);
-        }
+        // Add twinkle animation to all stars (was previously only 30%)
+        const animationDuration = Math.random() * 4 + 3;
+        particle.style.animation = `twinkleStar ${animationDuration}s ease-in-out infinite`;
+        
+        // Set CSS variables for the animation
+        const baseOpacity = Math.random() * 0.3 + config.starBrightness * (starType === 0 ? 0.3 : starType === 1 ? 0.6 : 0.9);
+        const maxOpacity = baseOpacity * 1.5;
+        particle.style.setProperty('--base-opacity', baseOpacity);
+        particle.style.setProperty('--max-opacity', maxOpacity);
         
         // Start completely transparent
         particle.style.opacity = '0';
         
-        // Add to container first
+        // Add to container
         container.appendChild(particle);
         
         // PHASE 1: FADE IN - Start the fade-in after a small random delay
         setTimeout(() => {
-            // Calculate the target opacity based on type and config - INCREASED brightness
-            const typeBrightness = parseFloat(particle.dataset.brightness || 0.5);
+            // Calculate the target opacity based on type and config
+            const typeBrightness = starType === 0 ? 0.3 : starType === 1 ? 0.6 : 0.9;
             const targetOpacity = Math.min(1.0, (Math.random() * 0.4 + config.starBrightness * typeBrightness + 0.2));
             
             // Fade in to the target opacity
@@ -353,7 +306,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // PHASE 3: FADE OUT - Begin fading out
                 setTimeout(() => {
-                    // Reduce size during fadeout for a nice effect (shrink to 40% of original size)
+                    // Reduce size during fadeout for a nice effect
                     const shrinkSize = originalSize * 0.4;
                     particle.style.width = `${shrinkSize}px`;
                     particle.style.height = `${shrinkSize}px`;
@@ -368,14 +321,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     setTimeout(() => {
                         // Generate new position
                         const newPosX = Math.random() * 120 - 10;
-                        const newPosY = Math.random() * 120 - 10;
+                        const newPosY = Math.random() * document.body.scrollHeight;
+                        const newPosYPercent = (newPosY / document.body.scrollHeight) * 100;
                         
                         // Reset size, position, and opacity
                         particle.style.transition = 'none';
                         particle.style.width = `${originalSize}px`;
                         particle.style.height = `${originalSize}px`;
                         particle.style.left = `${newPosX}%`;
-                        particle.style.top = `${newPosY}%`;
+                        particle.style.top = `${newPosYPercent}%`;
                         particle.style.opacity = '0';
                         
                         // Force reflow and restart the cycle
@@ -384,119 +338,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         particle.style.opacity = targetOpacity.toString();
                     }, fadeOutTime + 50);
                 }, visibleTime);
-            }, fadeInTime + 50); // Reduced buffer after fade in
-        }, Math.random() * 1500); // Reduced initial delay by 50%
+            }, fadeInTime + 50);
+        }, Math.random() * 1500);
         
         return particle;
-    }
-    
-    // Function to create tiny dust cloud particles
-    function createDustParticle() {
-        const dust = document.createElement('div');
-        
-        // Increase size range for dust particles to make them more visible
-        const size = Math.random() * 2.5 + 0.5; // Increased from (1.2 + 0.1) to (2.5 + 0.5)
-        
-        // Position randomly with more spread throughout the entire document
-        const posX = Math.random() * 120 - 10;
-        const posY = Math.random() * document.body.scrollHeight; // Use absolute position in document
-        
-        // Convert posY to percentage for consistent positioning
-        const posYPercent = (posY / document.body.scrollHeight) * 100;
-        
-        // Dust particles move the fastest for extreme parallax
-        const parallaxDepth = 1.2 + (1 / size) * 0.4; // Higher values for stronger movement
-        
-        // Setup fade timings
-        const fadeInTime = Math.random() * 1000 + 500;
-        const visibleTime = Math.random() * 3000 + 2000;
-        const fadeOutTime = Math.random() * 1000 + 500;
-        
-        // Styling dust - keep dust particles as circles
-        dust.style.position = 'absolute';
-        dust.style.width = `${size}px`;
-        dust.style.height = `${size}px`;
-        dust.classList.add('dust-particle');
-        dust.style.left = `${posX}%`;
-        dust.style.top = `${posYPercent}%`; // Use percentage based on document height
-        dust.style.zIndex = '2'; // Above background, below stars
-        dust.style.opacity = '0'; // Start completely invisible
-        dust.style.transition = `opacity ${fadeInTime}ms ease-in`;
-        
-        // Store parallax depth as a data attribute
-        dust.dataset.parallaxDepth = parallaxDepth;
-        dust.dataset.isdust = true;
-        dust.dataset.originalX = posX;
-        dust.dataset.originalY = posY; // Store original Y position for parallax calculation
-        
-        // Random dust color
-        const dustColorIndex = Math.floor(Math.random() * dustColors.length);
-        dust.style.backgroundColor = dustColors[dustColorIndex];
-        
-        // Add subtle glow effect to dust particles to enhance visibility
-        dust.style.boxShadow = `0 0 ${size * 1.5}px 1px ${dustColors[dustColorIndex]}`;
-        
-        // Add to container
-        container.appendChild(dust);
-        
-        // PHASE 1: FADE IN - Start fade in after a small delay
-        setTimeout(() => {
-            // Target opacity for dust particles - increased
-            const targetOpacity = Math.random() * 0.4 + 0.2; // Increased from (0.15 + 0.05) to (0.4 + 0.2)
-            dust.style.opacity = targetOpacity.toString();
-            
-            // PHASE 2: VISIBLE DURATION - After fade in, setup fade out
-            setTimeout(() => {
-                // Change transition for fade out
-                dust.style.transition = `opacity ${fadeOutTime}ms ease-out`;
-                
-                // PHASE 3: FADE OUT
-                setTimeout(() => {
-                    dust.style.opacity = '0';
-                    
-                    // PHASE 4: REPOSITION - After fade out, reposition
-                    setTimeout(() => {
-                        // Generate new position
-                        const newPosX = Math.random() * 120 - 10;
-                        const newPosY = Math.random() * 120 - 10;
-                        
-                        // Turn off transition temporarily
-                        dust.style.transition = 'none';
-                        
-                        // Update position
-                        dust.style.left = `${newPosX}%`;
-                        dust.style.top = `${newPosY}%`;
-                        dust.dataset.originalX = newPosX;
-                        dust.dataset.originalY = newPosY;
-                        
-                        // Reset transforms
-                        dust.style.transform = '';
-                        
-                        // Force reflow
-                        void dust.offsetWidth;
-                        
-                        // Restart the cycle with fade in
-                        dust.style.transition = `opacity ${fadeInTime}ms ease-in`;
-                        
-                        // Start the fade in again after a small delay
-                        setTimeout(() => {
-                            dust.style.opacity = targetOpacity.toString();
-                            
-                            // Set up next fade out
-                            setTimeout(() => {
-                                dust.style.transition = `opacity ${fadeOutTime}ms ease-out`;
-                                
-                                setTimeout(() => {
-                                    dust.style.opacity = '0';
-                                }, visibleTime);
-                            }, fadeInTime + 100);
-                        }, 100);
-                    }, fadeOutTime + 100);
-                }, visibleTime);
-            }, fadeInTime + 100);
-        }, Math.random() * 2000); // Random initial delay
-        
-        return dust;
     }
     
     // Add simplified keyframe animations with less dynamic movement
@@ -737,8 +582,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return sliderContainer;
         }
         
-        // Add sliders for different particle properties (removing parallax slider)
-        const starCountSlider = createSlider('Star Count', 50, 500, config.particleCount, 10, (value) => {
+        // Add sliders for different particle properties - removed dust slider
+        const starCountSlider = createSlider('Star Count', 50, 800, config.particleCount, 10, (value) => {
             // Store new value
             const newCount = Math.floor(value);
             const diff = newCount - config.particleCount;
@@ -746,7 +591,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (diff > 0) {
                 // Add more stars
                 for (let i = 0; i < diff; i++) {
-                    createParticle();
+                    const particle = createParticle();
+                    if (particle) particles.push(particle);
                 }
             } else if (diff < 0) {
                 // Remove stars
@@ -757,27 +603,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             config.particleCount = newCount;
-        });
-        
-        const dustCountSlider = createSlider('Dust Count', 0, 300, config.dustCloudCount, 10, (value) => {
-            // Store new value
-            const newCount = Math.floor(value);
-            const diff = newCount - config.dustCloudCount;
-            
-            if (diff > 0) {
-                // Add more dust
-                for (let i = 0; i < diff; i++) {
-                    createDustParticle();
-                }
-            } else if (diff < 0) {
-                // Remove dust
-                const dusts = Array.from(container.querySelectorAll('div')).filter(el => el.dataset.isdust === "true");
-                for (let i = 0; i < Math.min(Math.abs(diff), dusts.length); i++) {
-                    if (dusts[i]) dusts[i].remove();
-                }
-            }
-            
-            config.dustCloudCount = newCount;
         });
         
         const floatingRateSlider = createSlider('Floating Rate', 0, 1, config.floatingRate, 0.05, (value) => {
@@ -815,7 +640,6 @@ document.addEventListener('DOMContentLoaded', function() {
         resetButton.addEventListener('click', () => {
             // Reset to default values
             config.particleCount = defaultConfig.particleCount;
-            config.dustCloudCount = defaultConfig.dustCloudCount;
             config.floatingRate = defaultConfig.floatingRate;
             config.starBrightness = defaultConfig.starBrightness;
             config.particleMovement = defaultConfig.particleMovement;
@@ -834,14 +658,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 createParticle();
             }
             
-            for (let i = 0; i < config.dustCloudCount; i++) {
-                createDustParticle();
-            }
-            
             // Update controls
             controlsContent.innerHTML = '';
             controlsContent.appendChild(starCountSlider);
-            controlsContent.appendChild(dustCountSlider);
             controlsContent.appendChild(floatingRateSlider);
             controlsContent.appendChild(brightnessSlider);
             controlsContent.appendChild(movementSlider);
@@ -885,9 +704,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 3000);
         });
         
-        // Add controls to the container - exclude parallax slider
+        // Add controls to the container - removed dust slider
         controlsContent.appendChild(starCountSlider);
-        controlsContent.appendChild(dustCountSlider);
         controlsContent.appendChild(floatingRateSlider);
         controlsContent.appendChild(brightnessSlider);
         controlsContent.appendChild(movementSlider);
