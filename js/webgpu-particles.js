@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     
     // Default configuration options for particle system
     const defaultConfig = {
-        particleCount: 3000,       // Updated to match the image
+        particleCount: 4000,       // Updated to match the image
         starBrightness: 5,         // Updated to match the image
         minBrightness: 0.3,        // Updated to match the image
         maxBrightness: 1,          // Updated to match the image
