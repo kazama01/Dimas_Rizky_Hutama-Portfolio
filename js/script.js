@@ -380,3 +380,151 @@ function initTypewriterEffect() {
         typeCharacter();
     });
 }
+
+// Text reveal with typing effect on scroll
+document.addEventListener('DOMContentLoaded', () => {
+    const revealText = document.querySelector('.reveal-text');
+    if (!revealText) return;
+    
+    // Save original content properly
+    const originalContent = revealText.innerHTML;
+    revealText.innerHTML = ''; // Clear the text initially
+
+    function simulateTyping() {
+        // Create a temporary div to parse the HTML correctly
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = originalContent;
+        
+        // Get all paragraphs or create one if none exist
+        let paragraphs = tempDiv.querySelectorAll('p');
+        
+        // If no paragraphs found, wrap content in a paragraph
+        if (paragraphs.length === 0) {
+            const content = tempDiv.innerHTML;
+            tempDiv.innerHTML = `<p>${content}</p>`;
+            paragraphs = tempDiv.querySelectorAll('p');
+        }
+        
+        let currentParagraphIndex = 0;
+        let cursor = null;
+        
+        // Function to type a single paragraph
+        function typeParagraph() {
+            if (currentParagraphIndex >= paragraphs.length) {
+                return; // Finished all paragraphs
+            }
+            
+            const paragraphContent = paragraphs[currentParagraphIndex].textContent.trim();
+            const para = document.createElement('p');
+            para.className = 'typing-paragraph';
+            
+            // Only add cursor to the last paragraph
+            const isLastParagraph = currentParagraphIndex === paragraphs.length - 1;
+            
+            // Create text span to hold characters
+            const textSpan = document.createElement('span');
+            para.appendChild(textSpan);
+            
+            // Add the paragraph to the DOM
+            revealText.appendChild(para);
+            
+            // Create cursor if needed (only for last paragraph)
+            if (isLastParagraph) {
+                if (cursor) {
+                    // Remove any existing cursor first
+                    cursor.remove();
+                }
+                cursor = document.createElement('span');
+                cursor.className = 'typing-cursor';
+                para.appendChild(cursor);
+            }
+            
+            let charIndex = 0;
+            
+            // Function to type each character
+            function typeChar() {
+                if (charIndex < paragraphContent.length) {
+                    // Get next character and add it to text span
+                    const char = paragraphContent.charAt(charIndex);
+                    textSpan.textContent += char;
+                    charIndex++;
+                    
+                    // Schedule next character
+                    setTimeout(typeChar, 5);
+                } else {
+                    // Move to next paragraph
+                    currentParagraphIndex++;
+                    setTimeout(typeParagraph, 100);
+                }
+            }
+            
+            // Start typing characters
+            typeChar();
+        }
+        
+        // Begin typing the first paragraph
+        typeParagraph();
+    }
+
+    function checkIfVisible() {
+        const rect = revealText.getBoundingClientRect();
+        const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+        
+        if (rect.top <= windowHeight * 0.8) {
+            simulateTyping();
+            window.removeEventListener('scroll', checkIfVisible);
+        }
+    }
+    
+    // Check visibility immediately
+    if (revealText.getBoundingClientRect().top <= window.innerHeight * 0.8) {
+        simulateTyping();
+    } else {
+        window.addEventListener('scroll', checkIfVisible);
+    }
+});
+
+// Ensure "Download Resume" is treated as a button
+document.addEventListener('DOMContentLoaded', () => {
+    const resumeBtn = document.getElementById('resume-btn');
+    if (resumeBtn) {
+        resumeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const resumePath = 'Documents/DimasRizky-Resume.pdf';
+            
+            // Create a download notification
+            const message = document.createElement('div');
+            message.style.position = 'fixed';
+            message.style.top = '20px';
+            message.style.left = '50%';
+            message.style.transform = 'translateX(-50%)';
+            message.style.backgroundColor = 'rgba(100, 255, 218, 0.9)';
+            message.style.color = '#121212';
+            message.style.padding = '10px 20px';
+            message.style.borderRadius = '5px';
+            message.style.zIndex = '9999';
+            message.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+            message.textContent = 'Downloading resume...';
+            document.body.appendChild(message);
+            
+            // Create an iframe that will handle the download without navigating
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.onload = function() {
+                // After iframe loads, remove it from the DOM
+                setTimeout(() => document.body.removeChild(iframe), 1000);
+            };
+            
+            // Set iframe source to the PDF file
+            document.body.appendChild(iframe);
+            iframe.src = resumePath;
+            
+            // Remove message after a delay
+            setTimeout(() => {
+                message.style.opacity = '0';
+                message.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => document.body.removeChild(message), 500);
+            }, 2000);
+        });
+    }
+});

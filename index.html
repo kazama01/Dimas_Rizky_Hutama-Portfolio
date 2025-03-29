@@ -13,7 +13,7 @@
     <style>
         /* Dynamic gradient background */
         body {
-            background: #121212;
+            background: transparent; /* Changed from #121212 to transparent */
         }
 
         /* Smooth scrolling */
@@ -290,14 +290,16 @@
         <div class="container">
             <h2 class="section-title">About Me</h2>
             <div class="about-content">
-                <div class="about-text">
+                <div class="about-text reveal-text">
                     <p>I am a passionate Technical Artist with expertise in creating visual effects, shaders, and optimized game systems. With strong foundations in both art and programming, I bridge the gap between creative vision and technical implementation.</p>
                     <p>Currently working as a VFX Artist at Gaco Game and Unity Full Stack Developer at Starpixel, I specialize in shader creation, VFX/particle systems, and game optimization. I'm constantly exploring new techniques to push the boundaries of what's possible in real-time graphics.</p>
-                    <a href="#" class="btn primary" id="resume-btn">Download Resume</a>
                 </div>
                 <div class="about-image">
                     <img src="images/profile.jpg" alt="Dimas Rizky Hutama" id="profile-pic">
                 </div>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button id="resume-btn" class="btn primary">Download Resume</button>
             </div>
         </div>
     </section>
@@ -697,6 +699,8 @@
     </footer>
 
     <script src="js/script.js"></script>
+    <script src="js/space-background.js"></script>
+    <script src="js/space-clouds.js"></script>
     <script src="js/webgpu-particles.js"></script>
     <!-- Fallback script will be loaded automatically if WebGPU is not supported -->
 </body>
