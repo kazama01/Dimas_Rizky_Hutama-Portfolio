@@ -1283,13 +1283,13 @@ section:nth-child(even) {
     background: rgba(100, 255, 218, 0.05);
     border-left: 3px solid #64ffda;
     padding: 20px;
-    margin-left: -20px;
+    margin-left: 0px;
     border-radius: 0 8px 8px 0;
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
 .timeline-item.current-position::before {
-    left: -14px;
+    left: -38px;
     background: #64ffda;
     box-shadow: 0 0 0 4px rgba(100, 255, 218, 0.4), 0 0 10px rgba(100, 255, 218, 0.6);
 }
